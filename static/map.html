@@ -1,0 +1,32 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bản đồ toàn màn hình · WebGIS TP.HCM</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="/static/mapstyle.css">
+</head><body>
+<div id="map"></div>
+
+<div class="card" id="ctl">
+ <div class="hd">Bản đồ chỉ số<span class="sp"></span><a href="/#home">⌂ Trang chính</a><button id="t1" title="Thu nhỏ / mở rộng">–</button></div>
+ <div class="body">
+  <label>Chỉ số<select id="idx"><option value="LST">LST – Nhiệt độ bề mặt (°C)</option><option value="NDVI">NDVI – Thực vật</option><option value="TVDI">TVDI – Khô hạn</option></select></label>
+  <div class="row"><label>Năm (mùa khô)<select id="yr"></select></label><label>Mây tối đa (%)<input type="number" id="c" value="30" min="0" max="100"></label></div>
+  <label><input type="checkbox" id="cls"> Phân loại theo mức độ</label>
+  <label>Độ trong suốt lớp chỉ số<input type="range" id="op" min="0.1" max="1" step="0.05" value="0.9" style="width:100%"></label>
+  <button class="go" id="btn">Hiển thị bản đồ</button><div class="msg" id="msg"></div>
+  <h4>Vùng hiển thị</h4>
+  <label>Tỉnh/thành (hoặc bấm lên bản đồ)<select id="rg"><option value="all">Toàn bộ TP.HCM (sau sáp nhập)</option></select></label>
+  <label>Quận/huyện/phường/xã<select id="dsel" disabled><option value="">— chọn tỉnh trước —</option></select></label>
+  <label><input type="checkbox" id="dist" checked> Hiện ranh giới quận/huyện</label>
+  <label><input type="checkbox" id="fill"> Tô màu theo trung bình chỉ số</label>
+  <div class="msg" id="rgmsg"></div>
+ </div>
+</div>
+
+<div class="card" id="leg"><div class="hd">Chú giải<span class="sp"></span><button id="t2">–</button></div>
+ <div class="body"><div id="sum"></div><div id="bar"></div><div id="ends"><span id="l0"></span><span id="l1"></span></div><div id="chips"></div></div></div>
+<div class="card" id="info"><button class="x" onclick="this.parentNode.style.display='none'">✕</button><div id="infob"></div></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/static/scriptmap.js"></script>
+</body></html>

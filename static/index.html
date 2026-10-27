@@ -1,0 +1,187 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WebGIS TP.HCM</title>
+<link rel="icon" type="image/png" href="/static/img/Logo.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="/static/style.css">
+</head><body>
+
+<!-- ===== TRANG BÌA ===== -->
+<div id="cover">
+ <img class="logo" src="/static/img/Logo.png" alt="Huy hiệu trường" onerror="this.style.display='none'"><!-- đặt ảnh huy hiệu tại static/img/Logo.png -->
+ <h1>THEO DÕI NHIỆT ĐỘ, THẢM XANH VÀ KHÔ HẠN<br>TP. HỒ CHÍ MINH<br>BẰNG ẢNH VỆ TINH TRÊN <span class="hl">GOOGLE EARTH ENGINE</span></h1>
+ <p class="intro">Hệ thống tự động lấy ảnh vệ tinh Landsat 8/9, xử lý và hiển thị kết quả lên bản đồ,<br>giúp bạn nhìn thấy khu vực nào đang nóng lên, thiếu cây xanh hoặc có nguy cơ khô hạn.</p>
+ <div class="feats">
+  <div><span>🛰️</span><b>Tự động lấy ảnh</b>Cập nhật khi có ảnh vệ tinh mới, không cần xử lý thủ công</div>
+  <div><span>🗺️</span><b>Bản đồ trực quan</b>Xem nhiệt độ, độ xanh, khô hạn đến từng quận/huyện</div>
+  <div><span>📈</span><b>Theo dõi theo thời gian</b>So sánh các năm 2016–2026 và dự báo xu hướng</div>
+  <div><span>📥</span><b>Thống kê &amp; xuất dữ liệu</b>Biểu đồ, bảng số liệu, tải về GeoTIFF/CSV</div>
+ </div>
+ <button class="btn-enter" onclick="enter()">Vào hệ thống WebGIS →</button>
+</div>
+
+<!-- ===== KHUNG ỨNG DỤNG ===== -->
+<div id="app">
+ <header><img class="hlogo" src="/static/img/Logo.png" alt="" onerror="this.style.display='none'"><button class="home" data-v="intro" onclick="go('intro')">⌂ Trang chủ</button>
+     <button class="full" onclick="location.href='/static/Map.html'">🗺 Bản đồ toàn màn hình</button>
+  <nav>
+   <button data-v="map" onclick="go('map')">Bản đồ</button>
+   <button data-v="stats" onclick="go('stats')">Bảng thống kê</button>
+   <button data-v="series" onclick="go('series')">Chuỗi thời gian</button>
+   <button data-v="auto" onclick="go('auto')">Tự động hóa</button>
+   <button data-v="tools" onclick="go('tools')">Công cụ</button>
+  </nav>
+  <button class="back" onclick="leave()">Bìa</button></header>
+ <main>
+
+ <!-- ===== TRANG CHỦ (THANG MÀU) ===== -->
+ <section id="v-intro" class="view"><div class="doc">
+  <h2>Thang màu thể hiện LST – NDVI – TVDI</h2>
+  <div id="scale"></div><div id="clsTab" class="tw"></div>
+ </div></section>
+
+ <!-- ===== 1. BẢN ĐỒ ===== -->
+ <section id="v-map" class="view">
+  <!-- (xanh nước) thanh icon công cụ kiểu Discord -->
+  <div id="rail">
+   <button class="rb on" data-p="ctl" data-tip="Bảng điều khiển" aria-label="Bảng điều khiển" onclick="railClick('ctl')">⚙️</button>
+   <div class="sep"></div>
+   <button class="rb" data-p="year" data-tip="Thống kê theo năm" aria-label="Thống kê theo năm" onclick="railClick('year')">📊</button>
+   <button class="rb" data-p="grid" data-tip="Ô lưới (bản đồ hiện tại)" aria-label="Ô lưới" onclick="railClick('grid')">🔲</button>
+   <button class="rb" data-p="dist" data-tip="Quận/huyện" aria-label="Quận/huyện" onclick="railClick('dist')">🏘️</button>
+   <button class="rb" data-p="live" data-tip="Bảng thời gian thực (khung nhìn)" aria-label="Thời gian thực" onclick="railClick('live')">⏱️</button>
+   <button class="rb" data-p="img" data-tip="Ảnh Landsat" aria-label="Ảnh Landsat" onclick="railClick('img')">🛰️</button>
+   <button class="rb" data-p="hist" data-tip="Lịch sử quét" aria-label="Lịch sử quét" onclick="railClick('hist')">🕘</button>
+  </div>
+  <!-- (cam) khu vực hiện bảng điều khiển / bảng dữ liệu -->
+  <div id="side">
+  <div id="panel"><h3>Bản đồ chỉ số</h3><div class="hint">Landsat 8/9 · mùa khô T12–T4</div>
+   <label>Chỉ số<select id="idx" onchange="$('cls').disabled=$('idx').value==='NDVI'"><option value="LST">LST – Nhiệt độ bề mặt (°C)</option><option value="NDVI">NDVI – Thực vật</option><option value="TVDI">TVDI – Khô hạn</option></select></label>
+   <div class="row"><label>Năm (mùa khô)<select id="yr"></select></label><label>Mây tối đa (%)<input type="number" id="c" value="30" min="0" max="100"></label></div>
+   <label><input type="checkbox" id="cls"> Phân loại theo mức độ (PhanCap_UHI_Khohan)</label>
+   <button class="b" id="btn" onclick="run()">Hiển thị bản đồ</button><div class="msg" id="msg"></div>
+   <h4>Vùng hiển thị</h4>
+   <label>Chọn vùng (hoặc bấm trực tiếp lên bản đồ)<select id="rg" onchange="setRegion(this.value)">
+    <option value="all">Toàn bộ TP.HCM (sau sáp nhập)</option><option value="TP.HCM (cũ)">TP.HCM (địa giới cũ)</option>
+    <option value="Bình Dương">Bình Dương (địa giới cũ)</option><option value="Bà Rịa – Vũng Tàu">Bà Rịa – Vũng Tàu (địa giới cũ)</option></select></label>
+   <label><input type="checkbox" id="dist" checked onchange="buildDistricts()"> Hiện ranh giới quận/huyện</label>
+   <label><input type="checkbox" id="fill" onchange="buildDistricts()"> Tô màu quận/huyện theo trung bình chỉ số</label>
+   <div class="msg" id="rgmsg"></div>
+   <div id="stats"><b>Toàn thành phố</b><br>Trung bình: <span id="m"></span> · Độ lệch chuẩn: <span id="sd"></span><br>Nhỏ nhất: <span id="mn"></span> · Lớn nhất: <span id="mx"></span><br>Số pixel hợp lệ: <span id="n"></span>
+    <div id="moran"></div><div id="legend"></div><div id="lg"><span id="l0"></span><span id="l1"></span></div><div id="chips"></div></div>
+   <h4>Quét chuỗi thời gian (lưu PostgreSQL)</h4>
+   <div class="row"><label>Từ năm<input type="number" id="y1" value="2016" min="2014"></label><label>Đến năm<input type="number" id="y2" min="2014"></label></div>
+   <label>Chế độ quét<select id="mode"><option value="year">Chuỗi năm (ưu tiên, nhanh hơn)</option><option value="month">Chuỗi năm + chuỗi tháng</option></select></label>
+   <button class="b alt" id="scan" onclick="scan()">Quét &amp; lưu</button><div class="msg" id="smsg"></div></div>
+  <div id="datapane"><div id="dhead"><b id="dtitle"></b><span class="sp"></span><button class="tool" onclick="dlcsv()">Tải CSV</button></div>
+  <div id="livebar"><label>Đơn vị thống kê<select id="liveU" onchange="render()"><option value="cell">Ô lưới</option><option value="dist">Quận/huyện</option></select></label><div id="livesum"></div></div><div id="tw" class="tw"></div></div>
+  </div>
+  <!-- (xanh lá) bản đồ -->
+  <div id="right"><div id="map"></div></div>
+ </section>
+
+ <!-- ===== 2. BẢNG THỐNG KÊ ===== -->
+ <section id="v-stats" class="view"><div class="pg">
+  <div class="row row-stat"><label>Năm (mùa khô)<select id="sy"></select></label><button class="b btn-flush" onclick="drawStats()">Tính thống kê</button></div>
+  <div class="seg wrap" id="sseg"><button data-t="desc" class="on" onclick="setS('desc')">1. Mô tả cơ bản</button><button data-t="spa" onclick="setS('spa')">2. Không gian</button><button data-t="tim" onclick="setS('tim')">3. Thời gian</button><button data-t="cor" onclick="setS('cor')">4. Tương quan</button><button data-t="cls" onclick="setS('cls')">5. Theo lớp phủ</button></div>
+  <div class="msg" id="smsg3"></div><div id="sdesc" class="msg msg-desc"></div><div id="sw" class="tw mt-8"></div></div></section>
+
+ <!-- ===== 3. CHUỖI THỜI GIAN ===== -->
+ <section id="v-series" class="view"><div class="pg">
+  <div class="seg"><button id="mY" class="on" onclick="setMode('year')">Theo mùa khô (năm)</button><button id="mM" onclick="setMode('month')">Theo tháng</button><button id="mC" onclick="setMode('combo')">Kết hợp (cột NDVI + đường LST, TVDI)</button></div>
+  <div class="msg" id="smsg2"></div><div class="chart-box"><canvas id="chart" height="110"></canvas></div><div id="stw" class="tw mt-12"></div>
+  <div class="msg msg-muted">Mùa khô được tổng hợp từ T12 năm trước đến T4 nên giá trị theo mùa chính là giá trị của năm. Đường nét đứt là dự báo cơ sở (tab Công cụ › Kiểm chứng &amp; dự báo).</div></div></section>
+
+ <!-- ===== TỰ ĐỘNG HÓA ===== -->
+ <section id="v-auto" class="view"><div class="pg">
+ <div id="autoState" class="auto-state">Đang tải...</div>
+ <div class="auto-ctl">
+  <label class="chk"><input type="checkbox" id="auOn"> Bật tự động quét khi có ảnh Landsat mới</label>
+  <div class="row row-chart"><label>Kiểm tra mỗi (giờ)<input type="number" id="auH" value="12" min="1" max="168"></label>
+   <label>Mây tối đa mùa khô (%)<input type="number" id="auC" value="30" min="0" max="100"></label>
+   <label>Cửa sổ "hiện tại" (ngày)<input type="number" id="auW" value="60" min="15" max="180"></label></div>
+  <div class="row row-chart mt-8"><button class="b btn-flush" onclick="auSave()">Lưu cấu hình</button>
+   <button class="b alt btn-flush" onclick="auRun(false)">Kiểm tra ngay</button>
+   <button class="b alt btn-flush" onclick="auRun(true)">Ép quét lại năm hiện tại</button></div>
+  <div class="msg" id="auMsg"></div></div>
+ <h2 class="au-h">Thông số hiện tại (chụp nhanh gần nhất)</h2><div id="auNow"></div>
+  <h2 class="au-h">Ảnh thể hiện (ghép ảnh gần nhất)</h2>
+ <div id="auImgs" class="cards"></div>
+ <div class="seg mt-12"><button onclick="auVec('grid')">⬇ GeoJSON ô lưới (thông số hiện tại)</button>
+  <button onclick="auVec('outline')">⬇ GeoJSON ranh giới</button></div>
+
+ <h2 class="au-h">So sánh số liệu theo chuỗi thời gian</h2>
+ <div class="seg"><button id="aY" class="on" onclick="auMode('year')">Theo mùa khô (năm)</button><button id="aM" onclick="auMode('month')">Theo tháng</button><button id="aC" onclick="auMode('combo')">Kết hợp (cột NDVI + đường LST, TVDI)</button></div>
+ <div class="chart-box"><canvas id="auChart" height="110"></canvas></div><div id="auSer" class="tw mt-12"></div>
+ <div class="hint">Điểm cuối "Hiện tại" là ghép ảnh gần nhất, không cùng mùa khô nên Δ so với kỳ trước chỉ để tham khảo.</div>
+
+ <h2 class="au-h">Phân tích &amp; đánh giá tự động</h2>
+ <div class="row row-stat"><label>Năm xem xét<select id="auAnY" onchange="drawAna(AU_ANA)"></select></label>
+  <button class="b alt btn-flush" onclick="csv('danh_gia_tu_dong.csv',ANAC,anaRows)">Tải CSV</button></div>
+ <div id="auAnSum"></div><div id="auAnW" class="tw mt-8"></div>
+ <h2 class="au-h">Nhật ký &amp; phân tích tự động</h2><div id="auLog" class="tw"></div>
+ <h2 class="au-h">Lịch sử chụp nhanh</h2><div id="auSnap" class="tw"></div>
+ <div class="msg msg-muted">Thông số hiện tại là ghép ảnh vài tuần gần nhất (mây scene &lt; 60%, pixel mây vẫn bị che bằng QA). TVDI ngoài mùa khô chỉ mang tính tham khảo. Số liệu năm (mùa khô T12–T4) chỉ đổi khi có ảnh mới trong khoảng đó. Phân tích đầy đủ 10 tình huống ở Công cụ › Phân tích &amp; đánh giá.</div>
+</div></section>
+
+ <!-- ===== 4. BIỂU ĐỒ SO SÁNH ===== -->
+<!-- ===== CÔNG CỤ (gộp: biểu đồ so sánh, kiểm chứng & dự báo, dữ liệu & xuất file, lịch sử & ảnh) ===== -->
+ <section id="v-tools" class="view">
+  <div class="toolbar"><div class="seg" id="toolseg">
+   <button data-t="charts" class="on" onclick="setTool('charts')">Biểu đồ so sánh</button>
+   <button data-t="valid" onclick="setTool('valid')">Kiểm chứng &amp; dự báo</button>
+   <button data-t="export" onclick="setTool('export')">Dữ liệu &amp; xuất file</button>
+   <button data-t="hist" onclick="setTool('hist')">Lịch sử &amp; ảnh</button>
+   <button data-t="ana" onclick="setTool('ana')">Phân tích &amp; đánh giá</button></div></div>
+  <div class="tool-pane on" id="tp-charts"><div class="pg">
+  <div class="row row-chart"><label>Loại biểu đồ<select id="ct"><option value="col">Cột – so sánh khu vực</option><option value="sca">Phân tán NDVI–LST (màu = TVDI)</option><option value="box">Hộp (boxplot)</option><option value="bub">Bong bóng NDVI–LST–TVDI</option><option value="rad">Radar 3 chỉ số</option><option value="his">Histogram phân bố</option><option value="tri">Tam giác TVDI (Ts–NDVI)</option></select></label>
+   <label>Năm<select id="cy"></select></label><label>Chỉ số (hộp/histogram)<select id="ci"><option>LST</option><option>NDVI</option><option>TVDI</option></select></label><button class="b btn-flush" onclick="drawLab()">Vẽ biểu đồ</button></div>
+  <div class="msg" id="cmsg2"></div><div class="msg msg-desc" id="cdesc"></div><div id="cw"></div>
+  <div class="msg msg-muted">Biểu đồ đường và biểu đồ kết hợp theo thời gian nằm ở mục 3. Bản đồ nhiệt (heat map) là bản đồ ở mục 1 và bảng nhiệt ở mục 2.2.</div></div></div>
+  <div class="tool-pane" id="tp-valid"><div class="doc">
+  <h2>Đối chiếu với các nghiên cứu đã công bố</h2><div id="vtab" class="tw"></div>
+  <p class="note-sm">Đối chiếu này không thay thế đo đạc thực địa; chỉ đánh giá tính hợp lý về xu hướng và quan hệ (đề cương mục 6.8). Mann–Kendall và độ dốc Sen tính trên chuỗi trung bình mùa khô.</p>
+  <h2>Dự báo cơ sở 3 năm tới</h2><div id="ftab" class="tw"></div>
+  <p class="note-sm">Hồi quy tuyến tính theo năm (± 1,96 × sai số dư). Đây là mô hình cơ sở để so sánh; chưa phải mô hình học máy/học sâu.</p></div></div>
+  <div class="tool-pane" id="tp-export"><div class="doc"><h2>Dữ liệu &amp; xuất file (đề cương mục 7.10)</h2>
+  <div class="row row-narrow"><label>Chỉ số<select id="ei"><option>LST</option><option>NDVI</option><option>TVDI</option></select></label><label>Năm<select id="ey"></select></label></div>
+  <div class="cards">
+    <div><b>Bản đồ bố cục (kiểu ArcGIS)</b><br><span class="card-desc">Có tiêu đề, lưới tọa độ, la bàn, thước tỷ lệ, chú giải. Dùng chỉ số và năm đã chọn ở trên.</span>
+ <label>Vùng<select id="ereg"><option value="all">Toàn bộ TP.HCM</option><option value="TP.HCM (cũ)">TP.HCM (địa giới cũ)</option><option value="Bình Dương">Bình Dương</option><option value="Bà Rịa – Vũng Tàu">Bà Rịa – Vũng Tàu</option></select></label>
+ <label><input type="checkbox" id="ecls" checked> Phân loại theo mức độ</label>
+ <button onclick="exCarto('png')">Tải PNG</button><button onclick="exCarto('pdf')">Tải PDF</button></div>
+   <div><b>Raster GeoTIFF</b><br><span class="card-desc">Chỉ số và năm đã chọn, 120 m, EPSG:4326 (tải về dạng .zip)</span><button onclick="exTif()">Tạo &amp; tải GeoTIFF</button></div>
+   <div><b>Vector ranh giới</b><br><span class="card-desc">GeoJSON ranh giới TP.HCM (cần bấm “Hiển thị bản đồ” ít nhất một lần)</span><button onclick="exVec()">Tải GeoJSON</button></div>
+   <div><b>CSV thống kê</b><br><span class="card-desc">Chuỗi theo năm hoặc theo tháng từ PostgreSQL</span><button onclick="exCsv('year')">CSV theo năm</button><button onclick="exCsv('month')">CSV theo tháng</button></div>
+   <div><b>Metadata ảnh</b><br><span class="card-desc">Danh sách cảnh Landsat của năm đã chọn</span><button onclick="exCsv('img')">CSV metadata</button></div>
+   <div><b>Báo cáo tổng hợp</b><br><span class="card-desc">Ghi BaoCao_ThongKe + ChiTiet_BaoCao</span><a href="/api/report"><button>Xuất báo cáo CSV</button></a></div></div>
+  <div class="msg" id="exmsg"></div></div></div>
+  <div class="tool-pane" id="tp-hist"><div class="pg">
+  <label class="field-wide">Lượt quét (chọn để tra ngược kết quả cũ)<select id="runSel" onchange="showRun()"></select></label>
+  <div class="msg" id="runInfo"></div>
+  <div class="seg" id="hseg"><button data-t="sum" class="on" onclick="setH('sum')">Bảng số liệu</button><button data-t="coef" onclick="setH('coef')">Hệ số tính toán</button>
+   <button data-t="reg" onclick="setH('reg')">Vùng &amp; màu</button><button data-t="par" onclick="setH('par')">Thông số kỹ thuật</button><button data-t="img" onclick="setH('img')">Ảnh bản đồ</button></div>
+  <div class="row" id="hfil"><label>Năm<select id="hy" onchange="showRun()"></select></label><label>Chỉ số<select id="hi" onchange="showRun()"><option value="">Tất cả</option><option>LST</option><option>NDVI</option><option>TVDI</option></select></label></div>
+  <div id="hw" class="tw mt-8"></div></div></div>
+  <div class="tool-pane" id="tp-ana"><div class="pg">
+ <div class="row row-stat"><label>Năm xem xét<select id="anY" onchange="drawAna()"></select></label>
+  <button class="b btn-flush" onclick="drawAna()">Phân tích lại</button>
+  <button class="b alt btn-flush" onclick="csv('danh_gia_'+$('anY').value+'.csv',ANAC,anaRows)">Tải CSV</button></div>
+ <div id="ansum"></div><div id="anw" class="tw mt-8"></div>
+ <div class="msg msg-muted">Đánh giá dựa trên chuỗi mùa khô đã quét (Mann–Kendall, độ lệch chuẩn, ngưỡng PhanCap_UHI_Khohan) và bản đồ đang hiển thị. Đây là đánh giá hỗ trợ, không thay thế đo đạc thực địa.</div>
+</div></div>
+ </section>
+
+ <!-- ===== 5. KIỂM CHỨNG & DỰ BÁO ===== -->
+
+ <!-- ===== 6. DỮ LIỆU & XUẤT FILE ===== -->
+
+ <!-- ===== 7. LỊCH SỬ & ẢNH ===== -->
+
+ </main>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="/static/script.js"></script>
+</body></html>

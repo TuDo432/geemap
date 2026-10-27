@@ -1,0 +1,787 @@
+/* ===== BIẾN MÀU DÙNG CHUNG (đổi màu giao diện tại đây) ===== */
+:root {
+  --blue: #1a73e8;       /* màu nhấn chính: nút, tab đang chọn */
+  --navy: #0b2a4a;       /* màu nền header, tiêu đề */
+  --slate: #455a64;      /* nút phụ (Quét & lưu, công cụ) */
+  --btn-muted: #cfd8e3;  /* nút tab chưa chọn */
+  --nav-text: #cfe0f3;   /* chữ thanh điều hướng */
+  --text: #222;
+  --border: #dde;
+  --error: #c62828;
+  --ok: #2e7d32;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  color: var(--text);
+}
+
+/* ===== TRANG BÌA ===== */
+#cover {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  padding: 32px;
+  /* xanh rêu – lục lam dịu mắt + lưới mảnh gợi bản đồ GIS */
+  background:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(160deg, #0e3b36, #1a5c4c 55%, #2c7a66);
+}
+
+#cover .logo {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  margin-bottom: 22px;
+}
+
+#cover h1 {
+  font-size: 32px;
+  line-height: 1.45;
+  max-width: 900px;
+  margin: 0 0 16px;
+}
+
+#cover h1 .hl {
+  color: #a5e6c8;
+}
+
+#cover .intro {
+  max-width: 680px;
+  margin: 0 0 30px;
+  font-size: 16px;
+  line-height: 1.7;
+  opacity: .9;
+}
+
+#cover .feats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  max-width: 920px;
+  width: 100%;
+  margin-bottom: 36px;
+}
+
+#cover .feats div {
+  background: rgba(255, 255, 255, .09);
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 12px;
+  padding: 14px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: .95;
+}
+
+#cover .feats span {
+  display: block;
+  font-size: 26px;
+  margin-bottom: 4px;
+}
+
+#cover .feats b {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #d9f5e8;
+}
+
+#cover .btn-enter {
+  background: #e8f7ef;
+  color: #124a3e;
+  font-weight: 600;
+  font-size: 16px;
+  border: 0;
+  border-radius: 30px;
+  padding: 12px 34px;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+#cover .btn-enter:hover {
+  background: #fff;
+}
+
+/* ===== KHUNG ỨNG DỤNG: header, điều hướng, các mục ===== */
+#app {
+  display: none;
+  flex-direction: column;
+  height: 100vh;
+}
+
+header {
+  background: var(--navy);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 16px;
+  height: 48px;
+  flex: none;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  overflow: visible;  /* menu chỉ còn 4 mục: không cần thanh cuộn */
+  padding: 0 2px;
+}
+
+/* tab dạng bong bóng mờ (glass) */
+nav button {
+  background: rgba(255, 255, 255, .10);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 999px;
+  color: var(--nav-text);
+  padding: 5px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: background .2s, border-color .2s;
+}
+
+nav button:hover {
+  background: rgba(255, 255, 255, .20);
+}
+
+nav button.on {
+  background: rgba(255, 255, 255, .30);
+  border-color: rgba(255, 255, 255, .55);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(79, 195, 247, .35);
+}
+
+header .home {
+  background: none;
+  border: 0;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+}
+
+header .home.on {
+  border-bottom-color: #4fc3f7;
+}
+
+header .back {
+  background: none;
+  border: 1px solid #6d8bab;
+  color: var(--nav-text);
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+main {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.view {
+  display: none;
+  height: 100%;
+  overflow: auto;
+}
+
+.view.on {
+  display: block;
+}
+
+#v-map.on {
+  display: flex;
+}
+
+/* ===== MỤC 1: TỔNG QUAN ===== */
+.doc {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 28px 48px;
+  line-height: 1.65;
+}
+
+.doc h2 {
+  color: var(--navy);
+  border-bottom: 2px solid var(--blue);
+  padding-bottom: 4px;
+  margin-top: 28px;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.steps div {
+  background: #eef4fb;
+  border-left: 4px solid var(--blue);
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.f {
+  background: #f6f8fa;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-family: Consolas, monospace;
+  font-size: 14px;
+  margin: 6px 0;
+}
+
+/* ===== MỤC 2: BẢN ĐỒ (panel trái, bản đồ, chú giải) ===== */
+#panel {
+  width: 330px;
+  padding: 16px;
+  background: #f7f9fb;
+  box-shadow: 2px 0 6px #0002;
+  z-index: 1000;
+  overflow: auto;
+  flex: none;
+}
+
+#right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+#map {
+  flex: 1;
+  min-height: 150px;
+}
+
+h3 {
+  margin: 0 0 4px;
+}
+
+h4 {
+  margin: 18px 0 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+label {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #555;
+}
+
+select,
+input[type=number],
+button.b {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+.row > * {
+  flex: 1;
+}
+
+button.b {
+  background: var(--blue);
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 12px;
+}
+
+button.b.btn-flush {
+  margin: 0;
+}
+
+button.alt {
+  background: var(--slate) !important;
+}
+
+button:disabled {
+  background: #9bb8e8;
+  cursor: wait;
+}
+
+a.dl {
+  display: block;
+  text-align: center;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.msg {
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.err {
+  color: var(--error);
+}
+
+.ok {
+  color: var(--ok);
+}
+
+#stats {
+  margin-top: 12px;
+  font-size: 13px;
+  background: #fff;
+  border-radius: 6px;
+  padding: 8px;
+  display: none;
+}
+
+#moran {
+  margin-top: 6px;
+}
+
+#legend {
+  height: 12px;
+  border-radius: 3px;
+  margin-top: 6px;
+}
+
+#lg {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+#chips div {
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+#chips span {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  margin-right: 6px;
+  border: 1px solid #0003;
+}
+
+/* ===== NGĂN DỮ LIỆU DƯỚI BẢN ĐỒ & BẢNG SỐ LIỆU ===== */
+#drawer {
+  background: #fff;
+  border-top: 2px solid var(--blue);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  height: 44px;           /* mặc định thu gọn để bản đồ rộng; mở ra bằng class .open */
+}
+
+#drawer.open {
+  height: 300px;
+}
+
+#tabs {
+  display: flex;
+  gap: 4px;
+  padding: 6px 8px;
+  background: #eef2f7;
+  align-items: center;
+}
+
+#tabs button {
+  margin: 0;
+  padding: 6px 12px;
+  background: var(--btn-muted);
+  color: var(--text);
+  border: 0;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#tabs button.on {
+  background: var(--blue);
+  color: #fff;
+}
+
+#tabs .sp {
+  flex: 1;
+}
+
+#tabs button.tool {
+  background: var(--slate);
+  color: #fff;
+}
+
+.tw {
+  overflow: auto;
+}
+
+#tw {
+  flex: 1;
+}
+
+.empty {
+  padding: 16px;
+  color: #666;
+  font-size: 13px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+
+th,
+td {
+  padding: 5px 12px;
+  border-bottom: 1px solid #e3e8ee;
+  text-align: right;
+  white-space: nowrap;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  background: #f1f4f8;
+  cursor: pointer;
+}
+
+td:first-child,
+th:first-child {
+  text-align: left;
+}
+
+tbody tr:hover {
+  background: #e8f0fe;
+}
+
+tr.hl {
+  background: #fff8e1;
+}
+
+table.v td {
+  white-space: normal;
+  text-align: left;
+}
+
+/* bảng nhiệt (mục 3.2) */
+table.heat td {
+  text-align: center;
+  font-weight: 600;
+}
+
+/* ===== MỤC 3–8: THỐNG KÊ, CHUỖI THỜI GIAN, BIỂU ĐỒ, KIỂM CHỨNG, XUẤT FILE, LỊCH SỬ ===== */
+.pg {
+  padding: 16px 24px;
+}
+
+.seg button {
+  width: auto;
+  display: inline-block;
+  margin: 0 4px 0 0;
+  padding: 6px 14px;
+  background: var(--btn-muted);
+  color: var(--text);
+  border: 0;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.seg button.on {
+  background: var(--blue);
+  color: #fff;
+}
+
+.seg.wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.seg.wrap button {
+  margin: 0;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.cards div {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.cards button {
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  background: var(--blue);
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ô màu mẫu trong bảng phân cấp (mục 1) */
+.sw {
+  display: inline-block;
+  width: 46px;
+  height: 14px;
+  border: 1px solid #0003;
+  vertical-align: middle;
+}
+
+/* vùng vẽ biểu đồ so sánh (mục 5) */
+#cw {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+/* ===== LỚP TIỆN ÍCH (thay cho style viết trực tiếp trong HTML) ===== */
+.hint { font-size: 12px; color: #666; }
+.note { font-size: 14px; color: #555; }
+.note-sm { font-size: 13px; color: #666; }
+.msg-muted { color: #666; }
+.msg-desc { color: #555; }
+.card-desc { font-size: 13px; }
+.chart-box { max-width: 1000px; margin-top: 10px; }
+.row-narrow { max-width: 420px; }
+.row-stat { max-width: 520px; align-items: end; }
+.row-chart { max-width: 760px; align-items: end; }
+.field-wide { max-width: 760px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+#sseg { margin: 10px 0; }
+#hseg { margin: 10px 0; }
+#hfil { max-width: 420px; display: none; } /* script.js bật/tắt bằng style.display */
+/* ===== BẢN ĐỒ: nút ẩn/hiện bảng điều khiển, chế độ rộng ===== */
+#v-map.wide #side {
+  display: none;
+}
+
+.map-btn {
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, .25);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.map-btn:hover {
+  background: #f4f4f4;
+}
+/* ===== TRANG CÔNG CỤ: thanh tab con + các khung nội dung ===== */
+.toolbar {
+  padding: 12px 24px 0;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 5;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.tool-pane {
+  display: none;
+}
+
+.tool-pane.on {
+  display: block;
+}
+
+/* logo trường ở thanh header */
+.hlogo {
+  height: 34px;
+  width: 34px;
+  object-fit: contain;
+  flex: none;
+  margin-right: -8px;
+}
+
+/* nút "Bản đồ toàn màn hình" gọn, cùng kiểu bong bóng mờ */
+header .full {
+  background: rgba(255, 255, 255, .10);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 999px;
+  color: var(--nav-text);
+  padding: 5px 13px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+header .full:hover {
+  background: rgba(255, 255, 255, .20);
+}
+
+/* ===== BẢN ĐỒ KIỂU DISCORD: thanh icon | khu vực nội dung | bản đồ ===== */
+#rail {
+  width: 64px;
+  flex: none;
+  background: var(--navy);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  z-index: 1100;
+}
+
+#rail .sep {
+  width: 28px;
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, .18);
+}
+
+#rail .rb {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;          /* tròn -> bo vuông khi hover/đang chọn (như Discord) */
+  background: rgba(255, 255, 255, .12);
+  font-size: 20px;
+  line-height: 44px;
+  cursor: pointer;
+  transition: border-radius .15s, background .15s;
+}
+
+#rail .rb:hover,
+#rail .rb.on {
+  border-radius: 14px;
+  background: var(--blue);
+}
+
+#rail .rb::before {           /* thanh trắng báo mục đang chọn */
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  width: 4px;
+  height: 0;
+  border-radius: 0 4px 4px 0;
+  background: #fff;
+  transform: translateY(-50%);
+  transition: height .15s;
+}
+
+#rail .rb:hover::before { height: 20px; }
+#rail .rb.on::before { height: 34px; }
+
+#rail .rb::after {            /* tooltip tên công cụ */
+  content: attr(data-tip);
+  position: absolute;
+  left: 58px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #111;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s;
+}
+
+#rail .rb:hover::after { opacity: 1; }
+
+#side {
+  width: 340px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  background: #f7f9fb;
+  box-shadow: 2px 0 6px #0002;
+  z-index: 1000;
+  min-height: 0;
+  transition: width .15s;
+}
+
+#side.data { width: 560px; }   /* mở bảng dữ liệu thì cột rộng hơn */
+
+#side #panel {
+  width: 100%;
+  flex: 1;
+  box-shadow: none;
+}
+
+#datapane {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#dhead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: #eef2f7;
+  color: var(--navy);
+}
+
+#dhead .sp { flex: 1; }
+
+#dhead .tool {
+  background: var(--slate);
+  color: #fff;
+  border: 0;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+#datapane #tw { flex: 1; background: #fff; }
+
+/* bảng real-time */
+#livebar { display: none; padding: 8px 14px; background: #fff; border-bottom: 1px solid var(--border); }
+#livebar label { margin: 0 0 6px; }
+#livesum { font-size: 13px; color: var(--navy); }
+#livecur { background: rgba(255,255,255,.95); font-size: 12px; cursor: default; }
+/* phân tích & đánh giá */
+.ana-sum { border-left: 6px solid var(--blue); background: #f6f8fa; padding: 10px 14px; border-radius: 6px; margin-top: 12px; line-height: 1.6; }
+.badge { display: inline-block; color: #fff; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+
+/* tự động hóa */
+.au-h { color: var(--navy); border-bottom: 2px solid var(--blue); padding-bottom: 4px; margin: 26px 0 10px; font-size: 20px; }
+.auto-state { background: #f6f8fa; border-left: 6px solid var(--blue); padding: 10px 14px; border-radius: 6px; line-height: 1.7; }
+.auto-ctl { max-width: 760px; margin-top: 12px; }
+.auto-ctl .chk { display: flex; gap: 8px; align-items: center; margin: 0 0 8px; font-size: 14px; color: var(--text); }
+.kpi { font-size: 24px; font-weight: 700; color: var(--navy); }

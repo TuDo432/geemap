@@ -1,0 +1,21 @@
+html,body{margin:0;height:100%;font-family:"Segoe UI",sans-serif;font-size:13px;color:#222}
+#map{position:absolute;inset:0}
+.card{position:absolute;z-index:1000;background:#fff;border-radius:12px;box-shadow:0 2px 10px #0005}
+.hd{display:flex;align-items:center;gap:8px;padding:10px 12px;font-weight:700;color:#0b2a4a}
+.hd .sp{flex:1}
+.hd button,.hd a{border:0;background:#eef2f7;border-radius:6px;padding:4px 9px;cursor:pointer;color:#0b2a4a;text-decoration:none;font-size:13px}
+#ctl{top:12px;left:12px;width:310px;max-height:calc(100% - 24px);overflow:auto}
+#ctl .body{padding:0 12px 12px}#ctl.min .body{display:none}
+label{display:block;margin-top:8px;color:#555}
+select,input[type=number]{width:100%;padding:7px;margin-top:3px;box-sizing:border-box}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.go{width:100%;margin-top:12px;padding:9px;border:0;border-radius:8px;background:#1a73e8;color:#fff;cursor:pointer;font-size:14px}
+.go:disabled{background:#9bb8e8}
+.msg{margin-top:8px}.err{color:#c62828}.ok{color:#2e7d32}
+h4{margin:14px 0 2px;padding-top:10px;border-top:1px solid #dde}
+#leg{left:12px;bottom:24px;width:250px}#leg .body{padding:0 12px 10px}#leg.min .body{display:none}
+#bar{height:12px;border-radius:3px}#ends{display:flex;justify-content:space-between;font-size:12px}
+#chips div{margin-top:3px;font-size:12px}#chips span{display:inline-block;width:14px;height:10px;margin-right:6px;border:1px solid #0003}
+#info{left:50%;bottom:24px;transform:translateX(-50%);min-width:260px;padding:12px 16px;display:none}
+#info b{font-size:15px}#info .x{position:absolute;right:8px;top:6px;border:0;background:none;cursor:pointer;font-size:16px}
+.leaflet-top.leaflet-right{top:0}
