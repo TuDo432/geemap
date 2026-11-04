@@ -1,3 +1,17 @@
+(()=>{const s=document.createElement('style');s.textContent=`
+.lc{background:#fff!important;border-radius:12px!important;box-shadow:0 2px 12px rgba(0,0,0,.35)!important;border:0!important;
+ min-width:200px;max-width:250px;overflow:hidden;font:13px "Segoe UI",sans-serif;color:#222}
+.lc button{all:unset;box-sizing:border-box;display:flex!important;justify-content:space-between;align-items:center;width:100%;
+ padding:10px 14px!important;cursor:pointer;font:600 13px "Segoe UI",sans-serif!important;color:#0b2a4a!important;background:#fff!important}
+.lc button:hover{background:#f1f5fa!important}
+.lc .lc-ovhead{background:#f1f4f8!important;border-top:1px solid #dde}
+.lc .lc-body{padding:4px 14px 8px;border-top:1px solid #dde;background:#fff}
+.lc .lc-ov{max-height:240px;overflow:auto}
+.lc label{display:flex!important;align-items:center;gap:6px;margin:0!important;padding:5px 0;font-size:13px!important;color:#222!important;cursor:pointer}
+.lc input{width:auto!important;margin:0!important;padding:0!important}
+.lc .lc-empty{color:#666;font-size:12px;padding:4px 0}`;
+document.head.appendChild(s);})();
+
 const $=id=>document.getElementById(id), Y=new Date().getFullYear();
 for(const id of ['yr','ey','sy','cy']){for(let y=Y;y>=2016;y--)$(id).add(new Option(y,y));$(id).value=Math.min(2025,Y);} $('y2').value=Y;
 function enter(){$('cover').style.display='none';$('app').style.display='flex';go('intro');}

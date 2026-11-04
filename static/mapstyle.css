@@ -19,3 +19,14 @@ h4{margin:14px 0 2px;padding-top:10px;border-top:1px solid #dde}
 #info{left:50%;bottom:24px;transform:translateX(-50%);min-width:260px;padding:12px 16px;display:none}
 #info b{font-size:15px}#info .x{position:absolute;right:8px;top:6px;border:0;background:none;cursor:pointer;font-size:16px}
 .leaflet-top.leaflet-right{top:0}
+
+/* ===== HỘP CHỌN LỚP BẢN ĐỒ (thu gọn: bấm mới mở) ===== */
+.lc{background:#fff;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.3);min-width:190px;max-width:250px;overflow:hidden;font-size:13px}
+.lc .lc-head,.lc .lc-ovhead{display:flex;justify-content:space-between;align-items:center;width:100%;margin:0;padding:9px 12px;border:0;background:#fff;color:#0b2a4a;font:600 13px "Segoe UI",sans-serif;text-align:left;cursor:pointer}
+.lc .lc-head:hover{background:#f4f7fb}
+.lc .lc-ovhead{background:#f1f4f8;border-top:1px solid #dde}
+.lc .lc-ovhead:hover{background:#e8eef6}
+.lc .lc-body{padding:4px 12px 8px;border-top:1px solid #dde}
+.lc .lc-ov{max-height:240px;overflow:auto}
+.lc label{display:flex;align-items:center;gap:4px;margin:4px 0;font-size:13px;color:#222;cursor:pointer}
+.lc .lc-empty{color:#666;font-size:12px;padding:4px 0}

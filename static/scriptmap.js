@@ -7,15 +7,108 @@ const map=L.map('map',{zoomControl:false,minZoom:6}).setView([10.8,106.7],9);
 L.control.zoom({position:'bottomright'}).addTo(map);
 map.createPane('gee').style.zIndex=250;
 map.createPane('mask').style.zIndex=300;map.getPane('mask').style.pointerEvents='none';
-const osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19});
-const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:19,maxNativeZoom:18}).addTo(map);
-const ctrl=L.control.layers({'Ảnh vệ tinh':sat,'Bản đồ đường':osm},{},{position:'topright'}).addTo(map);
+
+/* ---------- CSS của hộp chọn lớp: tự chèn từ JS để không phụ thuộc file CSS/cache ---------- */
+(()=>{const s=document.createElement('style');s.textContent=`
+.lc{background:#fff!important;border-radius:12px!important;box-shadow:0 2px 12px rgba(0,0,0,.35)!important;border:0!important;
+ min-width:200px;max-width:250px;overflow:hidden;font:13px "Segoe UI",sans-serif;color:#222}
+.lc button{all:unset;box-sizing:border-box;display:flex!important;justify-content:space-between;align-items:center;width:100%;
+ padding:10px 14px!important;cursor:pointer;font:600 13px "Segoe UI",sans-serif!important;color:#0b2a4a!important;background:#fff!important}
+.lc button:hover{background:#f1f5fa!important}
+.lc .lc-ovhead{background:#f1f4f8!important;border-top:1px solid #dde}
+.lc .lc-body{padding:4px 14px 8px;border-top:1px solid #dde;background:#fff}
+.lc .lc-ov{max-height:240px;overflow:auto}
+.lc label{display:flex!important;align-items:center;gap:6px;margin:0!important;padding:5px 0;font-size:13px!important;color:#222!important;cursor:pointer}
+.lc input{width:auto!important;margin:0!important;padding:0!important}
+.lc .lc-empty{color:#666;font-size:12px;padding:4px 0}`;
+document.head.appendChild(s);})();
+
+/* CSS của hộp chọn lớp: tự chèn từ JS để không phụ thuộc style.css/cache */
+(()=>{const s=document.createElement('style');s.textContent=`
+.lc{background:#fff!important;border-radius:12px!important;box-shadow:0 2px 12px rgba(0,0,0,.35)!important;border:0!important;
+ min-width:200px;max-width:250px;overflow:hidden;font:13px "Segoe UI",sans-serif;color:#222}
+.lc button{all:unset;box-sizing:border-box;display:flex!important;justify-content:space-between;align-items:center;width:100%;
+ padding:10px 14px!important;cursor:pointer;font:600 13px "Segoe UI",sans-serif!important;color:#0b2a4a!important;background:#fff!important}
+.lc button:hover{background:#f1f5fa!important}
+.lc .lc-ovhead{background:#f1f4f8!important;border-top:1px solid #dde}
+.lc .lc-body{padding:4px 14px 8px;border-top:1px solid #dde;background:#fff}
+.lc .lc-ov{max-height:240px;overflow:auto}
+.lc label{display:flex!important;align-items:center;gap:6px;margin:0!important;padding:5px 0;font-size:13px!important;color:#222!important;cursor:pointer}
+.lc input{width:auto!important;margin:0!important;padding:0!important}
+.lc .lc-empty{color:#666;font-size:12px;padding:4px 0}`;
+document.head.appendChild(s);})();
+
+/* ---------- hộp chọn lớp thu gọn (bấm mới mở) ----------
+   bases: [[tên, lớp nền], ...]   ctrl.addOverlay / ctrl.removeLayer / ctrl.refresh / ctrl.setBase */
+function layerBox(bases){
+ let openB=false,openO=false,ovs=[];
+ const c=L.control({position:'topright'});
+ const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;};
+ function setBase(l){
+  bases.forEach(([,b])=>{if(b!==l&&map.hasLayer(b))map.removeLayer(b);});
+  if(!map.hasLayer(l))l.addTo(map);
+  render();
+ }
+ function render(){
+  const d=c._box;if(!d)return;
+  d.textContent='';
+  const cur=bases.find(([,b])=>map.hasLayer(b));
+  const head=mk('button','lc-head');head.type='button';
+  head.append(mk('span','','🗺 '+(cur?cur[0]:'Chọn nền')),mk('span','',openB?'▴':'▾'));
+  head.onclick=()=>{openB=!openB;render();};
+  d.append(head);
+  if(!openB)return;
+  const body=mk('div','lc-body');
+  bases.forEach(([name,l])=>{
+   const lb=mk('label'),r=mk('input');r.type='radio';r.name='lcbase';r.checked=map.hasLayer(l);
+   r.onchange=()=>setBase(l);lb.append(r,' '+name);body.append(lb);
+  });
+  d.append(body);
+  const n=ovs.filter(o=>map.hasLayer(o.l)).length;
+  const oh=mk('button','lc-ovhead');oh.type='button';
+  oh.append(mk('span','','Lớp dữ liệu ('+n+')'),mk('span','',openO?'▴':'▾'));
+  oh.onclick=()=>{openO=!openO;render();};
+  d.append(oh);
+  if(!openO)return;
+  const ob=mk('div','lc-body lc-ov');
+  if(!ovs.length)ob.append(mk('div','lc-empty','Chưa có lớp dữ liệu. Bấm "Hiển thị bản đồ".'));
+  ovs.forEach(o=>{
+   const lb=mk('label'),cb=mk('input');cb.type='checkbox';cb.checked=map.hasLayer(o.l);
+   cb.onchange=()=>{if(cb.checked)map.addLayer(o.l);else map.removeLayer(o.l);render();};
+   lb.append(cb,' '+o.name);ob.append(lb);
+  });
+  d.append(ob);
+ }
+ c.onAdd=()=>{
+  const d=L.DomUtil.create('div','leaflet-control lc');
+  L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);
+  c._box=d;render();return d;
+ };
+ c.addOverlay=(l,name)=>{ovs.push({l,name});render();};
+ c.removeLayer=l=>{ovs=ovs.filter(o=>o.l!==l);render();};
+ c.refresh=render;
+ c.setBase=setBase;
+ return c;
+}
+
+/* các nền Esri không cần API key */
+const base={maxZoom:19,noWrap:true};
+const esri=p=>`https://server.arcgisonline.com/ArcGIS/rest/services/${p}/MapServer/tile/{z}/{y}/{x}`;
+const street=L.tileLayer(esri('World_Street_Map'),{...base,attribution:'Tiles © Esri'}).addTo(map);
+const light=L.tileLayer(esri('Canvas/World_Light_Gray_Base'),{...base,maxNativeZoom:16,attribution:'Tiles © Esri'});
+const dark=L.tileLayer(esri('Canvas/World_Dark_Gray_Base'),{...base,maxNativeZoom:16,attribution:'Tiles © Esri'});
+const osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{...base,attribution:'© OpenStreetMap contributors'});
+const sat=L.tileLayer(esri('World_Imagery'),{...base,maxNativeZoom:18,attribution:'Tiles © Esri'});
+const ctrl=layerBox([['Bản đồ đường',street],['Xám sáng',light],['Xám tối',dark],['OpenStreetMap',osm],['Ảnh vệ tinh',sat]]).addTo(map);
+/* nền đường lỗi liên tục (mất mạng/bị chặn) thì tự chuyển sang ảnh vệ tinh */
+let fails=0;
+street.on('tileerror',()=>{if(++fails===6&&map.hasLayer(street))ctrl.setBase(sat);});
 
 let L_={},geo=null,outline=null,vis=null,idx='LST',tok=0;
 const hex=h=>{const n=parseInt(h.slice(1),16);return[n>>16&255,n>>8&255,n&255]};
 function colorAt(t,p){t=Math.max(0,Math.min(1,t));const k=t*(p.length-1),i=Math.min(Math.floor(k),p.length-2),f=k-i,a=hex(p[i]),b=hex(p[i+1]);return'rgb('+a.map((v,j)=>Math.round(v+(b[j]-v)*f)).join(',')+')'}
 const rings=g=>(g.type==='Polygon'?[g.coordinates]:g.coordinates).map(x=>x[0].map(c=>[c[1],c[0]]));
-function put(k,l,name,show=true){drop(k);L_[k]=l;ctrl.addOverlay(l,name);if(show)l.addTo(map)}
+function put(k,l,name,show=true){drop(k);L_[k]=l;ctrl.addOverlay(l,name);if(show)l.addTo(map);ctrl.refresh()}
 function drop(k){const l=L_[k];if(l){ctrl.removeLayer(l);map.removeLayer(l);delete L_[k]}}
 const fx=(v,n)=>v==null?'–':v.toFixed(n);
 
