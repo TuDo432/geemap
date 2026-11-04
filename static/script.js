@@ -25,8 +25,8 @@ function setTool(t){toolTab=t;
 const VN=[[6,102],[24,118]];              // phạm vi Việt Nam (gồm biển đảo): bản đồ không kéo ra ngoài vùng này
 const HCM=[[10.3,106.2],[11.6,107.6]];    // vùng TP.HCM: mặc định phóng vào khi mở bản đồ
 let map,ctrl,dyn=[],lastR=null,lastRY=null,lastOutline=null;
-let geo=null,region='all',regTok=0,curIdx='LST',curVis=null;      // ranh giới tỉnh/quận huyện + vùng đang chọn
-let gridGroup=null,provLayer=null,distLayer=null,maskLayer=null,outlineLayer=null,distLayers={};
+let geo=null,regTok=0,curIdx='LST',curVis=null;      // ranh giới + thống kê phường/xã
+let gridGroup=null,distLayer=null,maskLayer=null,outlineLayer=null,distLayers={};
 const f3=v=>v==null?'–':v.toFixed(3);
 const hex2rgb=h=>{const n=parseInt(h.slice(1),16);return [n>>16&255,n>>8&255,n&255];};
 function colorAt(t,pal){t=Math.max(0,Math.min(1,t));const k=t*(pal.length-1),i=Math.min(Math.floor(k),pal.length-2),f=k-i,a=hex2rgb(pal[i]),b=hex2rgb(pal[i+1]);return 'rgb('+a.map((v,j)=>Math.round(v+(b[j]-v)*f)).join(',')+')';}
@@ -48,10 +48,10 @@ function initMap(){
 }
 function addLayer(l,name,show=true){dyn.push(l);ctrl.addOverlay(l,name);if(show)l.addTo(map);}
 function dropLayer(l){if(!l)return;ctrl.removeLayer(l);map.removeLayer(l);dyn=dyn.filter(x=>x!==l);}
-function clearLayers(){dyn.forEach(l=>{ctrl.removeLayer(l);map.removeLayer(l);});dyn=[];gridGroup=provLayer=distLayer=maskLayer=outlineLayer=null;distLayers={};}
+function clearLayers(){dyn.forEach(l=>{ctrl.removeLayer(l);map.removeLayer(l);});dyn=[];gridGroup=distLayer=maskLayer=outlineLayer=null;distLayers={};}
 
 /* ---------- thanh icon (kiểu Discord) + cột nội dung bên cạnh bản đồ ---------- */
-const PT={ctl:'Bảng điều khiển',year:'Thống kê theo năm',grid:'Ô lưới (bản đồ hiện tại)',dist:'Quận/huyện',live:'Bảng thời gian thực (khung nhìn)',img:'Ảnh Landsat',hist:'Lịch sử quét'};
+const PT={ctl:'Bảng điều khiển',year:'Thống kê theo năm',grid:'Ô lưới (bản đồ hiện tại)',dist:'Phường/xã',live:'Bảng thời gian thực (khung nhìn)',img:'Ảnh Landsat',hist:'Lịch sử quét'};
 let sideP='ctl';
 const fixMap=()=>setTimeout(()=>map&&map.invalidateSize(),50);
 function showSide(p){sideP=p;$('v-map').classList.remove('wide');
@@ -65,52 +65,37 @@ function railClick(p){const m=$('v-map');
  if(sideP===p&&!m.classList.contains('wide')){m.classList.add('wide');document.querySelectorAll('#rail .rb').forEach(b=>b.classList.remove('on'));fixMap();}   // bấm lại icon đang chọn: thu gọn cột
  else showSide(p);}
 
-/* ---------- chọn vùng hiển thị: toàn thành phố / từng tỉnh cũ -> quận, huyện ---------- */
-const selProv=()=>region==='all'||!geo?null:geo.provinces.features.find(f=>f.properties.zone===region);
-function buildMask(){      // làm tối phần ngoài vùng đang xem
- dropLayer(maskLayer);const sel=selProv();
- maskLayer=L.polygon([[[-85,-180],[-85,180],[85,180],[85,-180]],...(sel?geomRings(sel.geometry):outlineRings(lastOutline))],{pane:'mask',stroke:false,fillColor:'#000',fillOpacity:.5,interactive:false});
+/* ---------- ranh giới + số liệu phường/xã (TP.HCM sau sáp nhập, không gồm Côn Đảo) ---------- */
+function buildMask(){      // làm tối phần ngoài ranh giới TP.HCM
+ dropLayer(maskLayer);
+ maskLayer=L.polygon([[[-85,-180],[-85,180],[85,180],[85,-180]],...outlineRings(lastOutline)],{pane:'mask',stroke:false,fillColor:'#000',fillOpacity:.5,interactive:false});
  addLayer(maskLayer,'Làm tối ngoài vùng');
-}
-const provStyle=f=>{const on=f.properties.zone===region;return {color:on?'#d32f2f':'#ffeb3b',weight:on?3:1.5,dashArray:on?null:'5 4',fillOpacity:0};};
-function buildProvinces(){
- dropLayer(provLayer);
- provLayer=L.geoJSON(geo.provinces,{style:provStyle,onEachFeature:(f,l)=>{
-  l.bindTooltip(f.properties.zone+' · bấm để xem quận/huyện',{sticky:true});l.on('click',()=>setRegion(f.properties.zone));}});
- addLayer(provLayer,'Tỉnh/thành (bấm để chọn vùng)');
 }
 function distStyle(f){const v=((f.properties.stats||{})[curIdx]||{}).mean,fill=$('fill').checked&&v!=null;
  return {color:'#1a237e',weight:.9,fillColor:fill?colorAt((v-curVis.min)/(curVis.max-curVis.min),curVis.palette):'#000',fillOpacity:fill?.55:0};}
 function distPopup(p){const s=p.stats||{},v=(b,n)=>s[b]&&s[b].mean!=null?s[b].mean.toFixed(n):'–';
- return `<b>${p.name}</b><br><span class="hint">${p.zone}</span><br>LST TB: ${v('LST',2)} °C<br>NDVI TB: ${v('NDVI',3)}<br>TVDI TB: ${v('TVDI',3)}<br>Số pixel: ${(s[curIdx]||{}).count??'–'}`;}
+ return `<b>${p.name}</b><br>LST TB: ${v('LST',2)} °C<br>NDVI TB: ${v('NDVI',3)}<br>TVDI TB: ${v('TVDI',3)}<br>Số pixel: ${(s[curIdx]||{}).count??'–'}`;}
 function buildDistricts(){
  dropLayer(distLayer);distLayer=null;distLayers={};if(!geo||!$('dist').checked)return;
- const only=region!=='all';      // toàn thành phố: chỉ vẽ viền (bấm vào sẽ chọn tỉnh); đã chọn tỉnh: bấm xem từng quận/huyện
- distLayer=L.geoJSON(geo.districts,{filter:f=>!only||f.properties.zone===region,interactive:only,style:distStyle,onEachFeature:(f,l)=>{
-  if(!only)return;const p=f.properties;distLayers[p.zone+'|'+p.name]=l;l.bindPopup(distPopup(p));l.bindTooltip(p.name,{sticky:true});
+ distLayer=L.geoJSON(geo.districts,{style:distStyle,onEachFeature:(f,l)=>{
+  const p=f.properties;distLayers[p.name]=l;l.bindPopup(distPopup(p));l.bindTooltip(p.name,{sticky:true});
   l.on({mouseover:e=>e.target.setStyle({weight:2.5,color:'#d32f2f'}),mouseout:e=>distLayer.resetStyle(e.target)});}});
- addLayer(distLayer,'Quận/huyện');
+ addLayer(distLayer,'Phường/xã');
 }
-function applyRegion(fit=true){
+function applyDistricts(){
  if(!lastOutline||!geo)return;
- provLayer.setStyle(provStyle);buildMask();buildDistricts();
- if(fit){const sel=selProv();map.fitBounds(sel?L.geoJSON(sel).getBounds():outlineLayer.getBounds(),{padding:[20,20]});}
- const m=$('rgmsg');m.className='msg';m.textContent=region==='all'?'Bấm vào một tỉnh/thành trên bản đồ (viền vàng nét đứt) hoặc chọn ở danh sách để xem quận/huyện.':`Đang xem ${region}: bấm vào quận/huyện để xem số liệu, hoặc mở mục "Quận/huyện" ở thanh công cụ bên trái.`;
+ buildDistricts();
+ const m=$('rgmsg');m.className='msg';m.textContent='Bấm vào phường/xã trên bản đồ để xem số liệu, hoặc mở mục "Phường/xã" ở thanh công cụ bên trái.';
  if(tab==='dist')render();
 }
-function setRegion(v){
- region=v;$('rg').value=v;
- if(!geo){const m=$('rgmsg');m.className='msg';m.textContent=lastOutline?'Đang tải ranh giới, vùng sẽ được áp dụng khi tải xong.':'Bấm "Hiển thị bản đồ" trước để tải ranh giới.';return;}
- applyRegion();
-}
-async function loadRegions(year,cloud){      // ranh giới + thống kê tỉnh/quận huyện (GEE; lần đầu mỗi năm có thể chậm)
- const tok=++regTok,m=$('rgmsg');m.className='msg';m.textContent='Đang tải thống kê quận/huyện từ GEE (lần đầu có thể mất 1–2 phút)...';
+async function loadRegions(year,cloud){      // thống kê từng phường/xã (GEE; lần đầu mỗi năm có thể chậm)
+ const tok=++regTok,m=$('rgmsg');m.className='msg';m.textContent='Đang tải thống kê phường/xã từ GEE (lần đầu có thể mất 1–2 phút)...';
  try{const d=await J(`/api/stats/regions?year=${year}&cloud=${cloud}`);if(tok!==regTok)return;
-  geo=d;buildProvinces();applyRegion(region!=='all');}
- catch(e){if(tok!==regTok)return;m.className='msg err';m.textContent='Không tải được quận/huyện: '+e.message;}
+  geo=d;applyDistricts();}
+ catch(e){if(tok!==regTok)return;m.className='msg err';m.textContent='Không tải được phường/xã: '+e.message;}
 }
-function distRows(){return geo?geo.districts.features.filter(f=>region==='all'||f.properties.zone===region).map(f=>{const p=f.properties,s=p.stats||{};
- return {key:p.zone+'|'+p.name,name:p.name,zone:p.zone,lst:(s.LST||{}).mean,ndvi:(s.NDVI||{}).mean,tvdi:(s.TVDI||{}).mean,n:(s[curIdx]||{}).count};}):[];}
+function distRows(){return geo?geo.districts.features.map(f=>{const p=f.properties,s=p.stats||{};
+ return {key:p.name,name:p.name,lst:(s.LST||{}).mean,ndvi:(s.NDVI||{}).mean,tvdi:(s.TVDI||{}).mean,n:(s[curIdx]||{}).count};}):[];}
 
 async function run(){
  const btn=$('btn'),msg=$('msg'),idx=$('idx').value;btn.disabled=true;msg.className='';msg.textContent='Đang tính trên GEE (lần đầu mỗi năm có thể mất 1–3 phút)...';
@@ -139,7 +124,7 @@ async function run(){
   gridRows=d.geojson.features.map(f=>({...f.properties,gi:(gi[f.properties.Code]||{}).z,nhom:(gi[f.properties.Code]||{}).nhom}));setTab('grid',false);
   const e=d.edges;msg.className=d.db_error?'err':'ok';
   msg.textContent=(d.db_error||'Hoàn tất')+` · ${d.n_images} ảnh Landsat 8/9 · Ts_max = ${e.a.toFixed(1)} ${e.b<0?'−':'+'} ${Math.abs(e.b).toFixed(1)}·NDVI, Ts_min = ${e.tmin.toFixed(1)}°C`;
-  loadRegions($('yr').value,$('c').value);       // không chờ: bản đồ đã hiện, quận/huyện tải sau
+  loadRegions($('yr').value,$('c').value);       // không chờ: bản đồ đã hiện, phường/xã tải sau
  }catch(err){msg.className='err';msg.textContent='Lỗi: '+err.message;}finally{btn.disabled=false;}
 }
 
@@ -152,8 +137,8 @@ function liveRows(u){
  if(!map)return[];const b=map.getBounds();let rows=[];
  if(u==='cell')rows=gridRows.filter(r=>{const l=gridLayers[r.Code];return l&&r.mean!=null&&b.intersects(l.getBounds());})
   .map(r=>({key:r.Code,name:r.Name,v:r.mean,lo:r.min,hi:r.max,mc:lvl(curIdx,r.mean)||'–'}));
- else if(geo)rows=geo.districts.features.filter(f=>(region==='all'||f.properties.zone===region)&&b.intersects(fb(f)))
-  .map(f=>{const p=f.properties,s=(p.stats||{})[curIdx]||{};return {key:p.zone+'|'+p.name,name:p.name+' · '+p.zone,v:s.mean,lo:s.min,hi:s.max,mc:s.mean==null?'–':(lvl(curIdx,s.mean)||'–'),f};});
+ else if(geo)rows=geo.districts.features.filter(f=>b.intersects(fb(f)))
+  .map(f=>{const p=f.properties,s=(p.stats||{})[curIdx]||{};return {key:p.name,name:p.name,v:s.mean,lo:s.min,hi:s.max,mc:s.mean==null?'–':(lvl(curIdx,s.mean)||'–'),f};});
  const vs=rows.map(r=>r.v).filter(v=>v!=null),d=curIdx==='LST'?2:3;
  $('livesum').innerHTML=vs.length?`<b>${curIdx}</b> trong khung nhìn: <b>${vs.length}</b> đơn vị · TB <b>${fm(vs.reduce((a,b)=>a+b,0)/vs.length,d)}</b> · Min ${fm(Math.min(...vs),d)} · Max ${fm(Math.max(...vs),d)} · zoom ${map.getZoom()}`:'Chưa có dữ liệu trong khung nhìn (bấm "Hiển thị bản đồ" hoặc kéo bản đồ về vùng có dữ liệu).';
  return rows;}
@@ -180,10 +165,10 @@ async function render(){
   else if(tab==='grid'){rows=gridRows;empty='Bấm "Hiển thị bản đồ" để xem thống kê từng ô lưới.';
    cols=[T('Name','Ô lưới'),N('mean','Trung bình'),N('min','Min'),N('max','Max'),N('stdDev','Độ lệch chuẩn'),N('count','Số pixel',0),N('gi','Gi* (z)',2),T('nhom','Nhóm điểm nóng/lạnh')];
    click=r=>{const l=gridLayers[r.Code];if(l){if(gridGroup&&!map.hasLayer(gridGroup))map.addLayer(gridGroup);map.fitBounds(l.getBounds());l.openPopup();}};}
-  else if(tab==='dist'){rows=distRows();empty=geo?'Không có quận/huyện nào trong vùng này.':'Bấm "Hiển thị bản đồ" để tải thống kê quận/huyện.';
+  else if(tab==='dist'){rows=distRows();empty='Bấm "Hiển thị bản đồ" để tải thống kê phường/xã.';
    const tx=(k,l)=>({k,l,f:v=>v==null?'–':String(v)});
-   cols=[tx('name','Quận/huyện'),tx('zone','Thuộc'),N('lst','LST TB (°C)',2),N('ndvi','NDVI TB'),N('tvdi','TVDI TB'),N('n','Số pixel (chỉ số đang xem)',0)];
-   click=r=>{if(region==='all')setRegion(r.zone);const l=distLayers[r.key];if(l){map.fitBounds(l.getBounds());l.openPopup();}};}
+   cols=[tx('name','Phường/xã'),N('lst','LST TB (°C)',2),N('ndvi','NDVI TB'),N('tvdi','TVDI TB'),N('n','Số pixel (chỉ số đang xem)',0)];
+   click=r=>{const l=distLayers[r.key];if(l){map.fitBounds(l.getBounds());l.openPopup();}};}
   else if(tab==='live'){if(!sortKey){sortKey='v';sortDir=-1;}
    rows=liveRows($('liveU').value);empty='Bấm "Hiển thị bản đồ" để có dữ liệu theo thời gian thực.';
    const tx=(k,l)=>({k,l,f:v=>v==null?'–':String(v)}),d=curIdx==='LST'?2:3;
@@ -318,7 +303,7 @@ function drawAna(ID={y:'anY',s:'ansum',w:'anw'}){
    top=[...a].sort((p,q)=>curIdx==='NDVI'?p.mean-q.mean:q.mean-p.mean).slice(0,3).map(r=>`${r.Name} (${f(r.mean,curIdx==='LST'?2:3)})`).join(', ');
   const sev=curIdx==='NDVI'?-1:sh>=15?2:sh>=5?1:0;
   add(`10. Điểm nóng Gi* (${curIdx} ${lastRY||''})`,sev,`${hot}/${a.length} ô là điểm nóng (${f(sh,1)}%); nổi bật: ${top}`,
-   curIdx==='NDVI'?'Với NDVI, điểm "nóng" nghĩa là nhiều thực vật; xem top ô thấp nhất để tìm vùng thiếu xanh.':sev===2?'Điểm nóng tập trung nhiều.':sev===1?'Có điểm nóng cục bộ.':'Ít điểm nóng.',sev>0?'Mở tab Quận/huyện để xác định đơn vị hành chính chịu ảnh hưởng.':'–');}
+   curIdx==='NDVI'?'Với NDVI, điểm "nóng" nghĩa là nhiều thực vật; xem top ô thấp nhất để tìm vùng thiếu xanh.':sev===2?'Điểm nóng tập trung nhiều.':sev===1?'Có điểm nóng cục bộ.':'Ít điểm nóng.',sev>0?'Mở tab Phường/xã để xác định đơn vị hành chính chịu ảnh hưởng.':'–');}
 
  // 11. Thông số hiện tại (chụp nhanh tự động) so với chuỗi mùa khô
  if(auSnapLast&&n>=3){const s=auSnapLast,L=col('LST'),Nd=col('NDVI'),zl=(+s.LST_TB-mean(L))/sd(L),zn=(+s.NDVI_TB-mean(Nd))/sd(Nd),dv=+s.LST_TB-+cur.LST_TrungBinh,sev=zl>=1.5?2:zl>=1?1:0;
@@ -396,7 +381,7 @@ function drawScale(c){
 (async()=>{let c={};try{c=await J('/api/classes');VISJS=c.vis;}catch(e){}CLS=c;drawScale(c);})();
 
 /* ---------- bảng thống kê ---------- */
-const SD={desc:'Max, Min, Trung bình, Độ lệch chuẩn, Trung vị và tứ phân vị cho toàn thành phố và từng khu vực (3 tỉnh cũ).',
+const SD={desc:'Max, Min, Trung bình, Độ lệch chuẩn, Trung vị và tứ phân vị cho toàn thành phố, nhóm các phường (đô thị) và nhóm các xã (ngoại thành).',
  spa:'Zonal statistics theo khu vực, bảng nhiệt (heat table), Moran\'s I (tụ cụm không gian) và Getis-Ord Gi* (điểm nóng/lạnh) trên ô lưới 5,5 km.',
  tim:'So sánh theo năm, xu hướng Mann–Kendall/độ dốc Sen và trung bình theo tháng trong mùa khô (cần đã quét chuỗi).',
  cor:'Tương quan Pearson (r), R² và hồi quy tuyến tính giữa LST, NDVI, TVDI trên ô lưới; kèm r NDVI–LST ở mức pixel.',
@@ -443,7 +428,7 @@ async function drawStats(){
  }catch(e){m.className='msg err';m.textContent='Lỗi: '+e.message;}}
 
 /* ---------- biểu đồ so sánh ---------- */
-const CH={col:'Cột: so sánh giá trị trung bình LST, NDVI, TVDI giữa TP.HCM (cũ), Bình Dương và Bà Rịa – Vũng Tàu.',
+const CH={col:'Cột: so sánh giá trị trung bình LST, NDVI, TVDI giữa toàn thành phố, nhóm các phường và nhóm các xã.',
  sca:'Phân tán: quan hệ NDVI–LST trên các ô lưới, màu điểm thể hiện TVDI; đường hồi quy kèm r và R².',
  box:'Hộp: phân bố Min, Q1, trung vị, Q3, Max của chỉ số được chọn theo khu vực (tính trên pixel).',
  bub:'Bong bóng: trục X NDVI, trục Y LST, kích thước bong bóng = TVDI, mỗi màu là một khu vực.',

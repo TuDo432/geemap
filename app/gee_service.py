@@ -7,7 +7,10 @@ load_dotenv()
 ee.Initialize(project=os.getenv("GEE_PROJECT"))
 
 GRID = ee.FeatureCollection(os.getenv("GEE_ASSET"))
-OUTLINE = ee.FeatureCollection(os.getenv("GEE_OUTLINE"))
+OUTLINE = ee.FeatureCollection(os.getenv("GEE_OUTLINE"))      # ranh giới TP.HCM sau sáp nhập, không gồm Côn Đảo (shapefile 34 tỉnh/thành)
+WARDS = ee.FeatureCollection(os.getenv("GEE_WARDS"))          # 167 phường/xã (shapefile phường/xã)
+ZONE = "TP.HCM"                                               # mã vùng duy nhất; phải khớp các giá trị trong index.html
+GROUPS = (("Phường", "Các phường (đô thị)"), ("Xã", "Các xã (ngoại thành)"))   # nhóm so sánh trong biểu đồ/bảng thống kê
 STATS = (ee.Reducer.mean().combine(ee.Reducer.minMax(), sharedInputs=True)
          .combine(ee.Reducer.stdDev(), sharedInputs=True).combine(ee.Reducer.count(), sharedInputs=True))
 KEYS = ("mean", "min", "max", "stdDev", "count")
@@ -126,17 +129,13 @@ def geotiff_url(index_code, year, cloud_max=30, scale=120):
 
 
 # ---------- thống kê theo khu vực / biểu đồ so sánh (tài liệu "Thống kê dữ liệu VT" và "Các loại biểu đồ") ----------
-def _label(n):
-    l = n.lower().replace("-", " ")
-    return "TP.HCM (cũ)" if "ho chi minh" in l else "Bình Dương" if "binh duong" in l else "Bà Rịa – Vũng Tàu" if "ba ria" in l else n
-
 def zones():
+    """Nhóm so sánh: hợp các phường / hợp các xã (cột `Loai` trong shapefile phường/xã). Không dùng địa giới tỉnh cũ."""
     if (h := _get("zones")):
         return h
-    gaul = ee.FeatureCollection("FAO/GAUL/2015/level1").filter(ee.Filter.eq("ADM0_NAME", "Viet Nam"))
-    sel = [n for n in gaul.aggregate_array("ADM1_NAME").getInfo()
-           if any(k in n.lower().replace("-", " ") for k in ("ho chi minh", "binh duong", "ba ria"))]
-    return _put("zones", gaul.filter(ee.Filter.inList("ADM1_NAME", sel)))
+    fs = [ee.Feature(WARDS.filter(ee.Filter.eq("Loai", loai)).geometry().dissolve(maxError=20), {"Zone": label})
+          for loai, label in GROUPS]
+    return _put("zones", ee.FeatureCollection(fs))
 
 def zone_stats(year, cloud_max=30):
     key = ("zones", year, cloud_max)
@@ -147,7 +146,7 @@ def zone_stats(year, cloud_max=30):
     rows = [{"zone": "Toàn thành phố", **{b: d["city"][b] for b in INDICES}}]
     for f in feats:
         p = f["properties"]
-        rows.append({"zone": _label(p["ADM1_NAME"]), **{b: {k: p.get(f"{b}_{k}") for k in KEYS_X} for b in INDICES}})
+        rows.append({"zone": p["Zone"], **{b: {k: p.get(f"{b}_{k}") for k in KEYS_X} for b in INDICES}})
     return _put(key, {"rows": rows, "r": d["r"], "n_images": d["n_images"]})
 
 def triangle_points(year, cloud_max=30):
@@ -186,33 +185,32 @@ def class_stats(year, cloud_max=30):
     return _put(key, sorted(out.values(), key=lambda v: v["cls"]))
 
 
-# ---------- ranh giới tỉnh / quận huyện + thống kê (chọn vùng trên bản đồ) ----------
+# ---------- ranh giới khu vực / phường-xã + thống kê (chọn vùng trên bản đồ) ----------
 def _districts():
-    """Quận/huyện của 3 tỉnh/thành cũ (FAO GAUL 2015 cấp 2: địa giới trước sáp nhập, tên không dấu)."""
-    if (h := _get("districts")):
-        return h
-    gaul = ee.FeatureCollection("FAO/GAUL/2015/level2").filter(ee.Filter.eq("ADM0_NAME", "Viet Nam"))
-    return _put("districts", gaul.filter(ee.Filter.inList("ADM1_NAME", zones().aggregate_array("ADM1_NAME"))))
+    """167 phường/xã của TP.HCM sau sáp nhập (shapefile phường/xã, ma_tinh = 79, không gồm Côn Đảo)."""
+    return WARDS
 
 def _pack(info):
     out = []
     for f in info["features"]:
         p = f["properties"]
+        name = f"{p['Loai']} {p['Name']}" if p.get("Loai") else ZONE
         out.append({"type": "Feature", "geometry": f["geometry"], "properties": {
-            "zone": _label(p["ADM1_NAME"]), "name": p.get("ADM2_NAME") or _label(p["ADM1_NAME"]),
+            "zone": ZONE, "name": name, "code": p.get("Code"),
             "stats": {b: {k: p.get(f"{b}_{k}") for k in KEYS} for b in INDICES}}})
     return {"type": "FeatureCollection", "features": out}
 
 def region_stats(year, cloud_max=30):
-    """Đa giác (đã đơn giản hóa) + thống kê LST/NDVI/TVDI cho từng tỉnh/thành và từng quận/huyện."""
+    """Đa giác + thống kê LST/NDVI/TVDI cho TP.HCM (1 đối tượng "provinces") và từng phường/xã ("districts")."""
     key = ("regions", year, cloud_max)
     if (hit := _get(key)):
         return hit
     img = year_data(year, cloud_max)["img"]
-    def run(fc):
-        fc = fc.map(lambda f: ee.Feature(f).simplify(200))
-        return _pack(img.reduceRegions(collection=fc, reducer=STATS, scale=90, tileScale=4).getInfo())
-    return _put(key, {"provinces": run(zones()), "districts": run(_districts())})
+    def run(fc, scale, tol=None):
+        if tol:
+            fc = fc.map(lambda f: ee.Feature(f).simplify(tol))
+        return _pack(img.reduceRegions(collection=fc, reducer=STATS, scale=scale, tileScale=4).getInfo())
+    return _put(key, {"provinces": run(OUTLINE, 90, 20), "districts": run(_districts(), 60)})
 
 
 # ---------- tự động hóa: theo dõi ảnh mới + chụp nhanh "hiện tại" ----------
@@ -261,7 +259,7 @@ def recent_data(days=60, cloud_max=60):
 
 
 def recent_png(index_code, days=60, cloud_max=60, size=800):
-    """PNG bản đồ chỉ số của ảnh ghép 'hiện tại' (nền trong suốt ngoài ranh giới)."""
+    """PNG bản đồ chỉ số của ảnh ghép 'hiện tại' (nền trong suốt ngoài ranh giới). """
     key = ("rpng", index_code, days, cloud_max, size)
     if (hit := _get(key)):
         return hit

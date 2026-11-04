@@ -48,7 +48,7 @@
    <div class="sep"></div>
    <button class="rb" data-p="year" data-tip="Thống kê theo năm" aria-label="Thống kê theo năm" onclick="railClick('year')">📊</button>
    <button class="rb" data-p="grid" data-tip="Ô lưới (bản đồ hiện tại)" aria-label="Ô lưới" onclick="railClick('grid')">🔲</button>
-   <button class="rb" data-p="dist" data-tip="Quận/huyện" aria-label="Quận/huyện" onclick="railClick('dist')">🏘️</button>
+   <button class="rb" data-p="dist" data-tip="Phường/xã" aria-label="Phường/xã" onclick="railClick('dist')">🏘️</button>
    <button class="rb" data-p="live" data-tip="Bảng thời gian thực (khung nhìn)" aria-label="Thời gian thực" onclick="railClick('live')">⏱️</button>
    <button class="rb" data-p="img" data-tip="Ảnh Landsat" aria-label="Ảnh Landsat" onclick="railClick('img')">🛰️</button>
    <button class="rb" data-p="hist" data-tip="Lịch sử quét" aria-label="Lịch sử quét" onclick="railClick('hist')">🕘</button>
@@ -61,11 +61,8 @@
    <label><input type="checkbox" id="cls"> Phân loại theo mức độ (PhanCap_UHI_Khohan)</label>
    <button class="b" id="btn" onclick="run()">Hiển thị bản đồ</button><div class="msg" id="msg"></div>
    <h4>Vùng hiển thị</h4>
-   <label>Chọn vùng (hoặc bấm trực tiếp lên bản đồ)<select id="rg" onchange="setRegion(this.value)">
-    <option value="all">Toàn bộ TP.HCM (sau sáp nhập)</option><option value="TP.HCM (cũ)">TP.HCM (địa giới cũ)</option>
-    <option value="Bình Dương">Bình Dương (địa giới cũ)</option><option value="Bà Rịa – Vũng Tàu">Bà Rịa – Vũng Tàu (địa giới cũ)</option></select></label>
-   <label><input type="checkbox" id="dist" checked onchange="buildDistricts()"> Hiện ranh giới quận/huyện</label>
-   <label><input type="checkbox" id="fill" onchange="buildDistricts()"> Tô màu quận/huyện theo trung bình chỉ số</label>
+   <label><input type="checkbox" id="dist" checked onchange="buildDistricts()"> Hiện ranh giới phường/xã</label>
+   <label><input type="checkbox" id="fill" onchange="buildDistricts()"> Tô màu phường/xã theo trung bình chỉ số</label>
    <div class="msg" id="rgmsg"></div>
    <div id="stats"><b>Toàn thành phố</b><br>Trung bình: <span id="m"></span> · Độ lệch chuẩn: <span id="sd"></span><br>Nhỏ nhất: <span id="mn"></span> · Lớn nhất: <span id="mx"></span><br>Số pixel hợp lệ: <span id="n"></span>
     <div id="moran"></div><div id="legend"></div><div id="lg"><span id="l0"></span><span id="l1"></span></div><div id="chips"></div></div>
@@ -74,7 +71,7 @@
    <label>Chế độ quét<select id="mode"><option value="year">Chuỗi năm (ưu tiên, nhanh hơn)</option><option value="month">Chuỗi năm + chuỗi tháng</option></select></label>
    <button class="b alt" id="scan" onclick="scan()">Quét &amp; lưu</button><div class="msg" id="smsg"></div></div>
   <div id="datapane"><div id="dhead"><b id="dtitle"></b><span class="sp"></span><button class="tool" onclick="dlcsv()">Tải CSV</button></div>
-  <div id="livebar"><label>Đơn vị thống kê<select id="liveU" onchange="render()"><option value="cell">Ô lưới</option><option value="dist">Quận/huyện</option></select></label><div id="livesum"></div></div><div id="tw" class="tw"></div></div>
+  <div id="livebar"><label>Đơn vị thống kê<select id="liveU" onchange="render()"><option value="cell">Ô lưới</option><option value="dist">Phường/xã</option></select></label><div id="livesum"></div></div><div id="tw" class="tw"></div></div>
   </div>
   <!-- (xanh lá) bản đồ -->
   <div id="right"><div id="map"></div></div>
@@ -147,7 +144,7 @@
   <div class="row row-narrow"><label>Chỉ số<select id="ei"><option>LST</option><option>NDVI</option><option>TVDI</option></select></label><label>Năm<select id="ey"></select></label></div>
   <div class="cards">
     <div><b>Bản đồ bố cục (kiểu ArcGIS)</b><br><span class="card-desc">Có tiêu đề, lưới tọa độ, la bàn, thước tỷ lệ, chú giải. Dùng chỉ số và năm đã chọn ở trên.</span>
- <label>Vùng<select id="ereg"><option value="all">Toàn bộ TP.HCM</option><option value="TP.HCM (cũ)">TP.HCM (địa giới cũ)</option><option value="Bình Dương">Bình Dương</option><option value="Bà Rịa – Vũng Tàu">Bà Rịa – Vũng Tàu</option></select></label>
+ <label>Vùng<select id="ereg"><option value="all">Toàn bộ TP.HCM</option><option value="TP.HCM">Có nhãn ranh phường/xã</option></select></label>
  <label><input type="checkbox" id="ecls" checked> Phân loại theo mức độ</label>
  <button onclick="exCarto('png')">Tải PNG</button><button onclick="exCarto('pdf')">Tải PDF</button></div>
    <div><b>Raster GeoTIFF</b><br><span class="card-desc">Chỉ số và năm đã chọn, 120 m, EPSG:4326 (tải về dạng .zip)</span><button onclick="exTif()">Tạo &amp; tải GeoTIFF</button></div>

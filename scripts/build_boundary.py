@@ -1,48 +1,44 @@
-import os, time, ee
+"""Dựng 3 asset GEE từ shapefile hành chính mới (TP.HCM sau sáp nhập 01/07/2025, không gồm Côn Đảo):
+   hcm_outline  ranh giới TP.HCM       (từ file 34 tỉnh/thành)
+   hcm_wards    167 phường/xã          (từ file phường/xã)
+   hcm_grid     lưới 0,05° phủ ranh giới
+Bước trước: python scripts/shp_to_geojson.py --shp-dir data/shp   (tạo data/hcm_outline.geojson, data/hcm_wards.geojson)
+Sau khi chạy xong, thêm vào .env:  GEE_WARDS=projects/<PROJECT>/assets/hcm_wards
+"""
+import json, os, time, ee
 from dotenv import load_dotenv
 load_dotenv()
 
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT = os.getenv("GEE_PROJECT")
 ee.Initialize(project=PROJECT)
 OUTLINE_ID = f"projects/{PROJECT}/assets/hcm_outline"
+WARDS_ID = f"projects/{PROJECT}/assets/hcm_wards"
 GRID_ID = f"projects/{PROJECT}/assets/hcm_grid"
-STEP = 0.05  # độ, khoảng 5.5 km
+STEP = 0.05  # độ, khoảng 5,5 km
 
-gaul = (ee.FeatureCollection("FAO/GAUL/2015/level1")
-        .filter(ee.Filter.eq("ADM0_NAME", "Viet Nam")))
-all_names = sorted(gaul.aggregate_array("ADM1_NAME").getInfo())
+def load(name):
+    with open(os.path.join(ROOT, "data", name), encoding="utf-8") as f:
+        return json.load(f)
 
-def pick(key):
-    # bỏ dấu gạch, so khớp không phân biệt hoa thường
-    return [n for n in all_names if key in n.lower().replace("-", " ")]
+def to_fc(gj):   # geodesic=False: cạnh đa giác là đường thẳng trên hệ tọa độ độ, khớp với shapefile gốc
+    return ee.FeatureCollection([ee.Feature(ee.Geometry(f["geometry"], None, False), f["properties"])
+                                 for f in gj["features"]])
 
-selected = []
-for key in ["ho chi minh", "binh duong", "ba ria"]:
-    m = pick(key)
-    print(f"Từ khóa '{key}' khớp:", m)
-    if len(m) != 1:
-        print("Toàn bộ tên trong GAUL:", all_names)
-        raise SystemExit(f"Từ khóa '{key}' khớp {len(m)} tỉnh, cần đúng 1. Gửi mình danh sách trên.")
-    selected.append(m[0])
+outline_gj, wards_gj = load("hcm_outline.geojson"), load("hcm_wards.geojson")
+outline_fc = to_fc(outline_gj)
+outline = outline_fc.geometry()
 
-three = gaul.filter(ee.Filter.inList("ADM1_NAME", selected))
-
-# Gộp 3 tỉnh, chỉ giữ đất liền (vĩ độ > 10.0) nên Côn Đảo tự bị loại
-outline = (three.geometry().dissolve(maxError=100)
-           .intersection(ee.Geometry.Rectangle([105.5, 10.0, 108.0, 11.8]), maxError=100)
-           .simplify(50))
-outline_fc = ee.FeatureCollection([ee.Feature(outline, {
-    "Code": "HCM", "Name": "TP.HCM (không gồm Côn Đảo)"})])
-
-# Lưới ô vuông phủ vừa khít ranh giới
-ring = outline.bounds().coordinates().getInfo()[0]
-xs, ys = [p[0] for p in ring], [p[1] for p in ring]
+# lưới ô vuông phủ vừa khít ranh giới
+parts = outline_gj["features"][0]["geometry"]["coordinates"]
+pts = [c for p in parts for c in p[0]]
+xs, ys = [c[0] for c in pts], [c[1] for c in pts]
 cells, n, y = [], 0, min(ys)
 while y < max(ys):
     x = min(xs)
     while x < max(xs):
         n += 1
-        cells.append(ee.Feature(ee.Geometry.Rectangle([x, y, x + STEP, y + STEP]),
+        cells.append(ee.Feature(ee.Geometry.Rectangle([x, y, x + STEP, y + STEP], "EPSG:4326", False),
                                 {"Code": f"G{n:04d}", "Name": f"Ô {n:04d}"}))
         x += STEP
     y += STEP
@@ -60,5 +56,10 @@ def export(fc, asset_id, desc):
     print(desc, "->", task.status()["state"], task.status().get("error_message", ""))
 
 export(outline_fc, OUTLINE_ID, "hcm_outline")
+export(to_fc(wards_gj), WARDS_ID, "hcm_wards")
 export(grid_fc, GRID_ID, "hcm_grid")
+
+print("Số phường/xã:", ee.FeatureCollection(WARDS_ID).size().getInfo())
 print("Số ô lưới:", ee.FeatureCollection(GRID_ID).size().getInfo())
+print("Diện tích ROI (km2):", round(ee.FeatureCollection(OUTLINE_ID).geometry().area(100).divide(1e6).getInfo(), 1))
+print("Nhớ thêm vào .env:  GEE_WARDS=" + WARDS_ID)
