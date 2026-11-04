@@ -8,7 +8,7 @@ let toolTab='charts';
 function go(v){clearInterval(auTimer);
  document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));
  document.querySelectorAll('header [data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
- if(v==='map'){initMap();map.invalidateSize();setTimeout(()=>map.invalidateSize(),100);}
+ if(v==='map'){initMap();map.invalidateSize();setTimeout(()=>map&&map.invalidateSize(),100);}
  if(v==='series')drawSeries();
  if(v==='auto'){loadAuto();auTimer=setInterval(loadAuto,15000);}
  if(v==='tools')setTool(toolTab);}
@@ -27,11 +27,67 @@ const HCM=[[10.3,106.2],[11.6,107.6]];    // vùng TP.HCM: mặc định phóng 
 let map,ctrl,dyn=[],lastR=null,lastRY=null,lastOutline=null;
 let geo=null,regTok=0,curIdx='LST',curVis=null;      // ranh giới + thống kê phường/xã
 let gridGroup=null,distLayer=null,maskLayer=null,outlineLayer=null,distLayers={};
+let geeLayer=null;                                   // lớp màu chỉ số từ GEE (để chỉnh độ trong suốt)
 const f3=v=>v==null?'–':v.toFixed(3);
 const hex2rgb=h=>{const n=parseInt(h.slice(1),16);return [n>>16&255,n>>8&255,n&255];};
 function colorAt(t,pal){t=Math.max(0,Math.min(1,t));const k=t*(pal.length-1),i=Math.min(Math.floor(k),pal.length-2),f=k-i,a=hex2rgb(pal[i]),b=hex2rgb(pal[i+1]);return 'rgb('+a.map((v,j)=>Math.round(v+(b[j]-v)*f)).join(',')+')';}
 const geomRings=g=>(g.type==='Polygon'?[g.coordinates]:g.coordinates).map(x=>x[0].map(c=>[c[1],c[0]]));
 const outlineRings=gj=>gj.features.flatMap(f=>geomRings(f.geometry));
+/* độ trong suốt lấy từ thanh trượt #op; thiếu thanh trượt hoặc giá trị lạ thì dùng 0,6 và luôn nằm trong 0,1–1 */
+const opacityNow=()=>{const el=$('op'),v=el?parseFloat(el.value):NaN;return Number.isFinite(v)?Math.max(0.1,Math.min(1,v)):0.6;};
+
+/* ---------- hộp chọn lớp thu gọn (tự dựng, không phụ thuộc cấu trúc bên trong của Leaflet) ----------
+   bases: [[tên, lớp nền], ...]   ctrl.addOverlay / ctrl.removeLayer / ctrl.refresh / ctrl.setBase */
+function layerBox(bases){
+ let openB=false,openO=false,ovs=[];
+ const c=L.control({position:'topright'});
+ const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;};
+ function setBase(l){
+  bases.forEach(([,b])=>{if(b!==l&&map.hasLayer(b))map.removeLayer(b);});
+  if(!map.hasLayer(l))l.addTo(map);
+  render();
+ }
+ function render(){
+  const d=c._box;if(!d)return;
+  d.textContent='';
+  const cur=bases.find(([,b])=>map.hasLayer(b));
+  const head=mk('button','lc-head');head.type='button';
+  head.append(mk('span','','🗺 '+(cur?cur[0]:'Chọn nền')),mk('span','',openB?'▴':'▾'));
+  head.onclick=()=>{openB=!openB;render();};
+  d.append(head);
+  if(!openB)return;
+  const body=mk('div','lc-body');
+  bases.forEach(([name,l])=>{
+   const lb=mk('label'),r=mk('input');r.type='radio';r.name='lcbase';r.checked=map.hasLayer(l);
+   r.onchange=()=>setBase(l);lb.append(r,' '+name);body.append(lb);
+  });
+  d.append(body);
+  const n=ovs.filter(o=>map.hasLayer(o.l)).length;
+  const oh=mk('button','lc-ovhead');oh.type='button';
+  oh.append(mk('span','','Lớp dữ liệu ('+n+')'),mk('span','',openO?'▴':'▾'));
+  oh.onclick=()=>{openO=!openO;render();};
+  d.append(oh);
+  if(!openO)return;
+  const ob=mk('div','lc-body lc-ov');
+  if(!ovs.length)ob.append(mk('div','lc-empty','Chưa có lớp dữ liệu. Bấm "Hiển thị bản đồ".'));
+  ovs.forEach(o=>{
+   const lb=mk('label'),cb=mk('input');cb.type='checkbox';cb.checked=map.hasLayer(o.l);
+   cb.onchange=()=>{if(cb.checked)map.addLayer(o.l);else map.removeLayer(o.l);render();};
+   lb.append(cb,' '+o.name);ob.append(lb);
+  });
+  d.append(ob);
+ }
+ c.onAdd=()=>{
+  const d=L.DomUtil.create('div','leaflet-control lc');
+  L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);
+  c._box=d;render();return d;
+ };
+ c.addOverlay=(l,name)=>{ovs.push({l,name});render();};
+ c.removeLayer=l=>{ovs=ovs.filter(o=>o.l!==l);render();};
+ c.refresh=render;
+ c.setBase=setBase;
+ return c;
+}
 
 /* Bản đồ chỉ được tạo khi mở mục Bản đồ lần đầu (lúc đó khung bản đồ đã có kích thước thật, tránh lệch vị trí) */
 function initMap(){
@@ -39,16 +95,29 @@ function initMap(){
  map=L.map('map',{minZoom:6,maxBounds:VN,maxBoundsViscosity:1}).fitBounds(HCM);
  map.createPane('gee');map.getPane('gee').style.zIndex=250;
  map.createPane('mask');map.getPane('mask').style.zIndex=300;map.getPane('mask').style.pointerEvents='none';
- const osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:19,bounds:VN,noWrap:true});
- const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:19,maxNativeZoom:18,bounds:VN,noWrap:true}).addTo(map);
- ctrl=L.control.layers({'Bản đồ đường':osm,'Ảnh vệ tinh':sat},{},{collapsed:false}).addTo(map);
+ /* các nền Esri không cần API key */
+ const base={maxZoom:19,bounds:VN,noWrap:true};
+ const esri=p=>`https://server.arcgisonline.com/ArcGIS/rest/services/${p}/MapServer/tile/{z}/{y}/{x}`;
+ const street=L.tileLayer(esri('World_Street_Map'),{...base,attribution:'Tiles © Esri'}).addTo(map);
+ const light=L.tileLayer(esri('Canvas/World_Light_Gray_Base'),{...base,maxNativeZoom:16,attribution:'Tiles © Esri'});
+ const dark=L.tileLayer(esri('Canvas/World_Dark_Gray_Base'),{...base,maxNativeZoom:16,attribution:'Tiles © Esri'});
+ const osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{...base,attribution:'© OpenStreetMap contributors'});
+ const sat=L.tileLayer(esri('World_Imagery'),{...base,maxNativeZoom:18,attribution:'Tiles © Esri'});
+ ctrl=layerBox([['Bản đồ đường',street],['Xám sáng',light],['Xám tối',dark],['OpenStreetMap',osm],['Ảnh vệ tinh',sat]]).addTo(map);
+ /* nếu nền mặc định liên tục lỗi (mất mạng/bị chặn) thì tự chuyển sang ảnh vệ tinh */
+ let fails=0;
+ street.on('tileerror',()=>{
+  if(++fails!==6||!map.hasLayer(street))return;
+  ctrl.setBase(sat);
+  const m=$('rgmsg');if(m){m.className='msg err';m.textContent='Không tải được bản đồ đường, đã chuyển sang ảnh vệ tinh. Kiểm tra mạng rồi chọn lại nền ở góc trên phải bản đồ.';}
+ });
  const curBox=L.control({position:'bottomleft'});
  curBox.onAdd=()=>{const d=L.DomUtil.create('div','map-btn');d.id='livecur';d.textContent='Rê chuột lên bản đồ để xem giá trị';return d;};curBox.addTo(map);
  map.on('move',liveRefresh);map.on('mousemove',thr(curMove,60));
 }
-function addLayer(l,name,show=true){dyn.push(l);ctrl.addOverlay(l,name);if(show)l.addTo(map);}
+function addLayer(l,name,show=true){dyn.push(l);ctrl.addOverlay(l,name);if(show)l.addTo(map);ctrl.refresh();}
 function dropLayer(l){if(!l)return;ctrl.removeLayer(l);map.removeLayer(l);dyn=dyn.filter(x=>x!==l);}
-function clearLayers(){dyn.forEach(l=>{ctrl.removeLayer(l);map.removeLayer(l);});dyn=[];gridGroup=distLayer=maskLayer=outlineLayer=null;distLayers={};}
+function clearLayers(){dyn.forEach(l=>{ctrl.removeLayer(l);map.removeLayer(l);});dyn=[];gridGroup=distLayer=maskLayer=outlineLayer=geeLayer=null;distLayers={};}
 
 /* ---------- thanh icon (kiểu Discord) + cột nội dung bên cạnh bản đồ ---------- */
 const PT={ctl:'Bảng điều khiển',year:'Thống kê theo năm',grid:'Ô lưới (bản đồ hiện tại)',dist:'Phường/xã',live:'Bảng thời gian thực (khung nhìn)',img:'Ảnh Landsat',hist:'Lịch sử quét'};
@@ -104,7 +173,8 @@ async function run(){
   const r=await fetch('/api/map?'+q),d=await r.json();if(!r.ok)throw new Error(d.detail||('Lỗi '+r.status));
   initMap();clearLayers();gridLayers={};geo=null;regTok++;const {min:lo,max:hi,palette:pal}=d.vis;
   curIdx=idx;curVis=d.vis;lastOutline=d.outline;lastR=d.r;lastRY=$('yr').value;
-  addLayer(L.tileLayer(d.tile_url,{pane:'gee',opacity:.9}),`${idx} ${$('yr').value} (GEE)`);
+  geeLayer=L.tileLayer(d.tile_url,{pane:'gee',opacity:opacityNow()});
+  addLayer(geeLayer,`${idx} ${$('yr').value} (GEE)`);
   buildMask();
   addLayer(L.geoJSON(d.geojson,{interactive:false,style:f=>{const m=f.properties.mean;return m==null?{fillOpacity:0,weight:0}:{color:'#444',weight:.4,fillColor:colorAt((m-lo)/(hi-lo),pal),fillOpacity:.6};}}),'Ô lưới tô màu theo trung bình',false);
   gridGroup=L.geoJSON(d.geojson,{style:{color:'#333',weight:.5,fillOpacity:0},onEachFeature:(f,l)=>{const p=f.properties;gridLayers[p.Code]=l;
@@ -540,6 +610,10 @@ async function auRun(force){const m=$('auMsg');m.className='msg';
 
 /* ---------- khởi động ---------- */
 render();loadAll();fetch('/api/scan/status').then(r=>r.json()).then(s=>{if(s.running){$('scan').disabled=true;poll();}});
+
+/* thanh trượt độ trong suốt lớp chỉ số: chỉ gắn khi thanh trượt tồn tại trong index.html */
+(()=>{const el=$('op');if(!el)return;
+ el.addEventListener('input',()=>{if(geeLayer)geeLayer.setOpacity(opacityNow());});})();
 
 /* nút "⌂ Trang chính" ở Map.html trỏ về /#home: bỏ qua bìa, vào thẳng giao diện chính */
 if(location.hash==='#home'){enter();history.replaceState(null,'',location.pathname);}
