@@ -1,0 +1,209 @@
+/* ===== MỤC BẢN ĐỒ: thanh icon | khu vực nội dung | bản đồ ===== */
+#rail {
+  width: 64px;
+  flex: none;
+  background: var(--navy);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  z-index: 1100;
+}
+
+#rail .sep {
+  width: 28px;
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, .18);
+}
+
+#rail .rb {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .12);
+  font-size: 20px;
+  line-height: 44px;
+  cursor: pointer;
+  transition: border-radius .15s, background .15s;
+}
+
+#rail .rb:hover,
+#rail .rb.on { border-radius: 14px; background: var(--blue); }
+
+#rail .rb::before {           /* thanh trắng báo mục đang chọn */
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  width: 4px;
+  height: 0;
+  border-radius: 0 4px 4px 0;
+  background: #fff;
+  transform: translateY(-50%);
+  transition: height .15s;
+}
+
+#rail .rb:hover::before { height: 20px; }
+#rail .rb.on::before { height: 34px; }
+
+#rail .rb::after {            /* tooltip tên công cụ */
+  content: attr(data-tip);
+  position: absolute;
+  left: 58px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #111;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s;
+}
+
+#rail .rb:hover::after { opacity: 1; }
+
+#side {
+  width: 340px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  background: #f7f9fb;
+  box-shadow: 2px 0 6px #0002;
+  z-index: 1000;
+  min-height: 0;
+  transition: width .15s;
+}
+
+#side.data { width: 560px; }   /* mở bảng dữ liệu thì cột rộng hơn */
+#v-map.wide #side { display: none; }
+
+#panel {
+  width: 100%;
+  padding: 16px;
+  background: #f7f9fb;
+  z-index: 1000;
+  overflow: auto;
+  flex: 1;
+}
+
+#right { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+#map { flex: 1; min-height: 150px; }
+
+#stats {
+  margin-top: 12px;
+  font-size: 13px;
+  background: #fff;
+  border-radius: 6px;
+  padding: 8px;
+  display: none;
+}
+
+#moran { margin-top: 6px; }
+#legend { height: 12px; border-radius: 3px; margin-top: 6px; }
+#lg { display: flex; justify-content: space-between; font-size: 12px; }
+#chips div { font-size: 12px; margin-top: 3px; }
+
+#chips span {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  margin-right: 6px;
+  border: 1px solid #0003;
+}
+
+.map-btn {
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, .25);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.map-btn:hover { background: #f4f4f4; }
+#livecur { background: rgba(255,255,255,.95); font-size: 12px; cursor: default; }
+
+/* ===== KHUNG BẢNG DỮ LIỆU BÊN CẠNH BẢN ĐỒ ===== */
+#datapane { display: none; flex: 1; flex-direction: column; min-height: 0; }
+
+#dhead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: #eef2f7;
+  color: var(--navy);
+}
+
+#dhead .sp { flex: 1; }
+
+#dhead .tool {
+  background: var(--slate);
+  color: #fff;
+  border: 0;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+#datapane #tw { flex: 1; background: #fff; }
+
+/* bảng thời gian thực */
+#livebar { display: none; padding: 8px 14px; background: #fff; border-bottom: 1px solid var(--border); }
+#livebar label { margin: 0 0 6px; }
+#livesum { font-size: 13px; color: var(--navy); }
+
+/* ===== HỘP CHỌN LỚP BẢN ĐỒ (thu gọn: bấm mới mở) ===== */
+.lc {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .3);
+  min-width: 190px;
+  max-width: 250px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.lc .lc-head,
+.lc .lc-ovhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin: 0;
+  padding: 9px 12px;
+  border: 0;
+  background: #fff;
+  color: var(--navy);
+  font: 600 13px "Segoe UI", sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lc .lc-head:hover { background: #f4f7fb; }
+.lc .lc-ovhead { background: #f1f4f8; border-top: 1px solid var(--border); }
+.lc .lc-ovhead:hover { background: #e8eef6; }
+.lc .lc-body { padding: 4px 12px 8px; border-top: 1px solid var(--border); }
+.lc .lc-ov { max-height: 240px; overflow: auto; }
+
+.lc label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 0;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.lc .lc-empty { color: #666; font-size: 12px; padding: 4px 0; }

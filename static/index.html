@@ -3,7 +3,13 @@
 <title>WebGIS TP.HCM</title>
 <link rel="icon" type="image/png" href="/static/img/Logo.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="/static/style.css?v=3">
+<link rel="stylesheet" href="/static/css/base.css?v=1">
+<link rel="stylesheet" href="/static/css/cover.css?v=1">
+<link rel="stylesheet" href="/static/css/layout.css?v=1">
+<link rel="stylesheet" href="/static/css/map.css?v=1">
+<link rel="stylesheet" href="/static/css/tables.css?v=1">
+<link rel="stylesheet" href="/static/css/tools.css?v=1">
+<link rel="stylesheet" href="/static/css/auto.css?v=1">
 </head><body>
 
 <!-- ===== TRANG BÌA ===== -->
@@ -23,7 +29,7 @@
 <!-- ===== KHUNG ỨNG DỤNG ===== -->
 <div id="app">
  <header><img class="hlogo" src="/static/img/Logo.png" alt="" onerror="this.style.display='none'"><button class="home" data-v="intro" onclick="go('intro')">⌂ Trang chủ</button>
-     <button class="full" onclick="location.href='/static/Map.html'">🗺 Bản đồ toàn màn hình</button>
+     <button class="full" onclick="location.href='/static/map.html'">🗺 Bản đồ toàn màn hình</button>
   <nav>
    <button data-v="map" onclick="go('map')">Bản đồ</button>
    <button data-v="stats" onclick="go('stats')">Bảng thống kê</button>
@@ -42,7 +48,7 @@
 
  <!-- ===== 1. BẢN ĐỒ ===== -->
  <section id="v-map" class="view">
-  <!-- (xanh nước) thanh icon công cụ kiểu Discord -->
+  <!-- thanh icon công cụ kiểu Discord -->
   <div id="rail">
    <button class="rb on" data-p="ctl" data-tip="Bảng điều khiển" aria-label="Bảng điều khiển" onclick="railClick('ctl')">⚙️</button>
    <div class="sep"></div>
@@ -53,7 +59,7 @@
    <button class="rb" data-p="img" data-tip="Ảnh Landsat" aria-label="Ảnh Landsat" onclick="railClick('img')">🛰️</button>
    <button class="rb" data-p="hist" data-tip="Lịch sử quét" aria-label="Lịch sử quét" onclick="railClick('hist')">🕘</button>
   </div>
-  <!-- (cam) khu vực hiện bảng điều khiển / bảng dữ liệu -->
+  <!-- khu vực hiện bảng điều khiển / bảng dữ liệu -->
   <div id="side">
   <div id="panel"><h3>Bản đồ chỉ số</h3><div class="hint">Landsat 8/9 · mùa khô T12–T4</div>
    <label>Chỉ số<select id="idx" onchange="$('cls').disabled=$('idx').value==='NDVI'"><option value="LST">LST – Nhiệt độ bề mặt (°C)</option><option value="NDVI">NDVI – Thực vật</option><option value="TVDI">TVDI – Khô hạn</option></select></label>
@@ -74,7 +80,7 @@
   <div id="datapane"><div id="dhead"><b id="dtitle"></b><span class="sp"></span><button class="tool" onclick="dlcsv()">Tải CSV</button></div>
   <div id="livebar"><label>Đơn vị thống kê<select id="liveU" onchange="render()"><option value="cell">Ô lưới</option><option value="dist">Phường/xã</option></select></label><div id="livesum"></div></div><div id="tw" class="tw"></div></div>
   </div>
-  <!-- (xanh lá) bản đồ -->
+  <!-- bản đồ -->
   <div id="right"><div id="map"></div></div>
  </section>
 
@@ -90,7 +96,7 @@
   <div class="msg" id="smsg2"></div><div class="chart-box"><canvas id="chart" height="110"></canvas></div><div id="stw" class="tw mt-12"></div>
   <div class="msg msg-muted">Mùa khô được tổng hợp từ T12 năm trước đến T4 nên giá trị theo mùa chính là giá trị của năm. Đường nét đứt là dự báo cơ sở (tab Công cụ › Kiểm chứng &amp; dự báo).</div></div></section>
 
- <!-- ===== TỰ ĐỘNG HÓA ===== -->
+ <!-- ===== 4. TỰ ĐỘNG HÓA ===== -->
  <section id="v-auto" class="view"><div class="pg">
  <div id="autoState" class="auto-state">Đang tải...</div>
  <div class="auto-ctl">
@@ -122,8 +128,7 @@
  <div class="msg msg-muted">Thông số hiện tại là ghép ảnh vài tuần gần nhất (mây scene &lt; 60%, pixel mây vẫn bị che bằng QA). TVDI ngoài mùa khô chỉ mang tính tham khảo. Số liệu năm (mùa khô T12–T4) chỉ đổi khi có ảnh mới trong khoảng đó. Phân tích đầy đủ 10 tình huống ở Công cụ › Phân tích &amp; đánh giá.</div>
 </div></section>
 
- <!-- ===== 4. BIỂU ĐỒ SO SÁNH ===== -->
-<!-- ===== CÔNG CỤ (gộp: biểu đồ so sánh, kiểm chứng & dự báo, dữ liệu & xuất file, lịch sử & ảnh) ===== -->
+ <!-- ===== 5. CÔNG CỤ (biểu đồ so sánh, kiểm chứng & dự báo, dữ liệu & xuất file, lịch sử & ảnh, phân tích) ===== -->
  <section id="v-tools" class="view">
   <div class="toolbar"><div class="seg" id="toolseg">
    <button data-t="charts" class="on" onclick="setTool('charts')">Biểu đồ so sánh</button>
@@ -170,16 +175,23 @@
 </div></div>
  </section>
 
- <!-- ===== 5. KIỂM CHỨNG & DỰ BÁO ===== -->
-
- <!-- ===== 6. DỮ LIỆU & XUẤT FILE ===== -->
-
- <!-- ===== 7. LỊCH SỬ & ẢNH ===== -->
-
  </main>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="/static/script.js?v=3"></script>
+<!-- thứ tự nạp quan trọng: core đầu tiên, main cuối cùng -->
+<script src="/static/js/core.js?v=1"></script>
+<script src="/static/js/nav.js?v=1"></script>
+<script src="/static/js/map.js?v=1"></script>
+<script src="/static/js/tables.js?v=1"></script>
+<script src="/static/js/scan.js?v=1"></script>
+<script src="/static/js/series.js?v=1"></script>
+<script src="/static/js/analysis.js?v=1"></script>
+<script src="/static/js/stats.js?v=1"></script>
+<script src="/static/js/charts.js?v=1"></script>
+<script src="/static/js/export.js?v=1"></script>
+<script src="/static/js/history.js?v=1"></script>
+<script src="/static/js/auto.js?v=1"></script>
+<script src="/static/js/main.js?v=1"></script>
 </body></html>

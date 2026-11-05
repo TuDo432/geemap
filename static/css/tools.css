@@ -1,0 +1,16 @@
+/* ===== TRANG CÔNG CỤ: thanh tab con + các khung nội dung ===== */
+.toolbar {
+  padding: 12px 24px 0;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 5;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.tool-pane { display: none; }
+.tool-pane.on { display: block; }
+
+/* phân tích & đánh giá */
+.ana-sum { border-left: 6px solid var(--blue); background: #f6f8fa; padding: 10px 14px; border-radius: 6px; margin-top: 12px; line-height: 1.6; }

@@ -1,0 +1,166 @@
+/* ===== KHUNG ỨNG DỤNG: header, điều hướng, các mục ===== */
+#app {
+  display: none;
+  flex-direction: column;
+  height: 100vh;
+}
+
+header {
+  background: var(--navy);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 16px;
+  height: 48px;
+  flex: none;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  overflow: visible;
+  padding: 0 2px;
+}
+
+/* tab dạng bong bóng mờ (glass) */
+nav button {
+  background: rgba(255, 255, 255, .10);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 999px;
+  color: var(--nav-text);
+  padding: 5px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: background .2s, border-color .2s;
+}
+
+nav button:hover { background: rgba(255, 255, 255, .20); }
+
+nav button.on {
+  background: rgba(255, 255, 255, .30);
+  border-color: rgba(255, 255, 255, .55);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(79, 195, 247, .35);
+}
+
+header .home {
+  background: none;
+  border: 0;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+}
+
+header .home.on { border-bottom-color: #4fc3f7; }
+
+header .back {
+  background: none;
+  border: 1px solid #6d8bab;
+  color: var(--nav-text);
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+/* nút "Bản đồ toàn màn hình" */
+header .full {
+  background: rgba(255, 255, 255, .10);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 999px;
+  color: var(--nav-text);
+  padding: 5px 13px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+header .full:hover { background: rgba(255, 255, 255, .20); }
+
+/* logo trường ở thanh header */
+.hlogo {
+  height: 34px;
+  width: 34px;
+  object-fit: contain;
+  flex: none;
+  margin-right: -8px;
+}
+
+main { flex: 1; min-height: 0; position: relative; }
+
+.view { display: none; height: 100%; overflow: auto; }
+.view.on { display: block; }
+#v-map.on { display: flex; }
+
+/* ===== TRANG CHỦ / TRANG CÓ NỘI DUNG DẠNG TÀI LIỆU ===== */
+.doc {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 28px 48px;
+  line-height: 1.65;
+}
+
+.doc h2 {
+  color: var(--navy);
+  border-bottom: 2px solid var(--blue);
+  padding-bottom: 4px;
+  margin-top: 28px;
+}
+
+.pg { padding: 16px 24px; }
+
+.seg button {
+  width: auto;
+  display: inline-block;
+  margin: 0 4px 0 0;
+  padding: 6px 14px;
+  background: var(--btn-muted);
+  color: var(--text);
+  border: 0;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.seg button.on { background: var(--blue); color: #fff; }
+
+.seg.wrap { display: flex; flex-wrap: wrap; gap: 4px; }
+.seg.wrap button { margin: 0; }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.cards div {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.cards button {
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  background: var(--blue);
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#sseg { margin: 10px 0; }
+#hseg { margin: 10px 0; }
+#hfil { max-width: 420px; display: none; } /* script bật/tắt bằng style.display */

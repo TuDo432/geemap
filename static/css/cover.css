@@ -1,0 +1,82 @@
+/* ===== TRANG BÌA ===== */
+#cover {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  padding: 32px;
+  /* xanh rêu – lục lam dịu mắt + lưới mảnh gợi bản đồ GIS */
+  background:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(160deg, #0e3b36, #1a5c4c 55%, #2c7a66);
+}
+
+#cover .logo {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  margin-bottom: 22px;
+}
+
+#cover h1 {
+  font-size: 32px;
+  line-height: 1.45;
+  max-width: 900px;
+  margin: 0 0 16px;
+}
+
+#cover h1 .hl { color: #a5e6c8; }
+
+#cover .intro {
+  max-width: 680px;
+  margin: 0 0 30px;
+  font-size: 16px;
+  line-height: 1.7;
+  opacity: .9;
+}
+
+#cover .feats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  max-width: 920px;
+  width: 100%;
+  margin-bottom: 36px;
+}
+
+#cover .feats div {
+  background: rgba(255, 255, 255, .09);
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 12px;
+  padding: 14px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: .95;
+}
+
+#cover .feats span { display: block; font-size: 26px; margin-bottom: 4px; }
+
+#cover .feats b {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #d9f5e8;
+}
+
+#cover .btn-enter {
+  background: #e8f7ef;
+  color: #124a3e;
+  font-weight: 600;
+  font-size: 16px;
+  border: 0;
+  border-radius: 30px;
+  padding: 12px 34px;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+#cover .btn-enter:hover { background: #fff; }

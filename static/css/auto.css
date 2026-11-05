@@ -1,0 +1,6 @@
+/* ===== TỰ ĐỘNG HÓA ===== */
+.au-h { color: var(--navy); border-bottom: 2px solid var(--blue); padding-bottom: 4px; margin: 26px 0 10px; font-size: 20px; }
+.auto-state { background: #f6f8fa; border-left: 6px solid var(--blue); padding: 10px 14px; border-radius: 6px; line-height: 1.7; }
+.auto-ctl { max-width: 760px; margin-top: 12px; }
+.auto-ctl .chk { display: flex; gap: 8px; align-items: center; margin: 0 0 8px; font-size: 14px; color: var(--text); }
+.kpi { font-size: 24px; font-weight: 700; color: var(--navy); }

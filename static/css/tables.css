@@ -1,0 +1,37 @@
+/* ===== BẢNG SỐ LIỆU ===== */
+.tw { overflow: auto; }
+#tw { flex: 1; }
+
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+
+th,
+td {
+  padding: 5px 12px;
+  border-bottom: 1px solid #e3e8ee;
+  text-align: right;
+  white-space: nowrap;
+}
+
+th { position: sticky; top: 0; background: #f1f4f8; cursor: pointer; }
+
+td:first-child,
+th:first-child { text-align: left; }
+
+tbody tr:hover { background: #e8f0fe; }
+tr.hl { background: #fff8e1; }
+table.v td { white-space: normal; text-align: left; }
+
+/* bảng nhiệt */
+table.heat td { text-align: center; font-weight: 600; }
+
+/* ô màu mẫu trong bảng phân cấp */
+.sw {
+  display: inline-block;
+  width: 46px;
+  height: 14px;
+  border: 1px solid #0003;
+  vertical-align: middle;
+}
+
+/* vùng vẽ biểu đồ so sánh */
+#cw { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; }
