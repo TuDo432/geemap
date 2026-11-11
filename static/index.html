@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="/static/css/base.css?v=1">
 <link rel="stylesheet" href="/static/css/cover.css?v=1">
 <link rel="stylesheet" href="/static/css/layout.css?v=1">
-<link rel="stylesheet" href="/static/css/map.css?v=1">
+<link rel="stylesheet" href="/static/css/map.css?v=3">
 <link rel="stylesheet" href="/static/css/tables.css?v=1">
 <link rel="stylesheet" href="/static/css/tools.css?v=1">
 <link rel="stylesheet" href="/static/css/auto.css?v=1">
@@ -28,7 +28,7 @@
 
 <!-- ===== KHUNG ỨNG DỤNG ===== -->
 <div id="app">
- <header><img class="hlogo" src="/static/img/Logo.png" alt="" onerror="this.style.display='none'"><button class="home" data-v="intro" onclick="go('intro')">⌂ Trang chủ</button>
+ <header><img class="hlogo" src="/static/img/Logo.png" alt="" onerror="this.style.display='none'">
      <button class="full" onclick="location.href='/static/map.html'">🗺 Bản đồ toàn màn hình</button>
   <nav>
    <button data-v="map" onclick="go('map')">Bản đồ</button>
@@ -39,12 +39,6 @@
   </nav>
   <button class="back" onclick="leave()">Bìa</button></header>
  <main>
-
- <!-- ===== TRANG CHỦ (THANG MÀU) ===== -->
- <section id="v-intro" class="view"><div class="doc">
-  <h2>Thang màu thể hiện LST – NDVI – TVDI</h2>
-  <div id="scale"></div><div id="clsTab" class="tw"></div>
- </div></section>
 
  <!-- ===== 1. BẢN ĐỒ ===== -->
  <section id="v-map" class="view">
@@ -80,8 +74,17 @@
   <div id="datapane"><div id="dhead"><b id="dtitle"></b><span class="sp"></span><button class="tool" onclick="dlcsv()">Tải CSV</button></div>
   <div id="livebar"><label>Đơn vị thống kê<select id="liveU" onchange="render()"><option value="cell">Ô lưới</option><option value="dist">Phường/xã</option></select></label><div id="livesum"></div></div><div id="tw" class="tw"></div></div>
   </div>
-  <!-- bản đồ -->
-  <div id="right"><div id="map"></div></div>
+  <!-- bản đồ + thang màu nổi (giữa, phía dưới) -->
+  <div id="right"><div id="map"></div>
+   <div id="scalePanel" class="scale-panel">
+    <button id="scaleBtn" class="scale-head" onclick="toggleScale()" aria-expanded="false" title="Thu nhỏ / mở rộng thang màu">
+     <span>🎨 Thang màu LST · NDVI · TVDI</span><span id="scaleArrow">+</span></button>
+    <div class="scale-body">
+     <div id="scale"></div>
+     <details><summary>Phân cấp mức độ</summary><div id="clsTab" class="tw"></div></details>
+    </div>
+   </div>
+  </div>
  </section>
 
  <!-- ===== 2. BẢNG THỐNG KÊ ===== -->
@@ -182,7 +185,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- thứ tự nạp quan trọng: core đầu tiên, main cuối cùng -->
 <script src="/static/js/core.js?v=1"></script>
-<script src="/static/js/nav.js?v=1"></script>
+<script src="/static/js/nav.js?v=2"></script>
 <script src="/static/js/map.js?v=1"></script>
 <script src="/static/js/tables.js?v=1"></script>
 <script src="/static/js/scan.js?v=1"></script>
@@ -193,5 +196,5 @@
 <script src="/static/js/export.js?v=1"></script>
 <script src="/static/js/history.js?v=1"></script>
 <script src="/static/js/auto.js?v=1"></script>
-<script src="/static/js/main.js?v=2"></script>
+<script src="/static/js/main.js?v=3"></script>
 </body></html>

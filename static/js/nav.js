@@ -1,6 +1,6 @@
 /* ===== ĐIỀU HƯỚNG CHÍNH ===== */
 let toolTab='charts';
-function enter(){$('cover').style.display='none';$('app').style.display='flex';go('intro');}
+function enter(){$('cover').style.display='none';$('app').style.display='flex';go('map');}
 function leave(){$('app').style.display='none';$('cover').style.display='flex';}
 function go(v){clearInterval(auTimer);
  document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));
@@ -9,6 +9,12 @@ function go(v){clearInterval(auTimer);
  if(v==='series')drawSeries();
  if(v==='auto'){loadAuto();auTimer=setInterval(loadAuto,15000);}
  if(v==='tools')setTool(toolTab);}
+
+/* thang màu nổi trên bản đồ: bấm để mở rộng / thu nhỏ (nhớ trạng thái) */
+function toggleScale(on){const p=$('scalePanel'),b=$('scaleBtn');
+ on=typeof on==='boolean'?on:!p.classList.contains('on');
+ p.classList.toggle('on',on);b.setAttribute('aria-expanded',on);$('scaleArrow').textContent=on?'–':'+';
+ try{localStorage.setItem('scaleOn',on?'1':'0');}catch(e){}}
 
 /* trang Công cụ (biểu đồ so sánh · kiểm chứng & dự báo · dữ liệu & xuất file · lịch sử & ảnh · phân tích) */
 function setTool(t){toolTab=t;

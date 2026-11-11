@@ -95,7 +95,7 @@
   flex: 1;
 }
 
-#right { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+#right { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
 #map { flex: 1; min-height: 150px; }
 
 #stats {
@@ -207,3 +207,58 @@
 }
 
 .lc .lc-empty { color: #666; font-size: 12px; padding: 4px 0; }
+
+/* ===== THANG MÀU NỔI (giữa, phía dưới bản đồ) ===== */
+.scale-panel {
+  position: absolute;
+  z-index: 1001;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  max-width: calc(100% - 20px);
+  background: rgba(255, 255, 255, .96);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .3);
+  overflow: hidden;
+}
+
+.scale-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin: 0;
+  padding: 7px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--navy);
+  font: 600 13px "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+
+.scale-head:hover { background: #eef3fa; }
+#scaleArrow { font-size: 16px; line-height: 1; }
+
+.scale-body {
+  display: none;
+  width: 440px;
+  max-width: 100%;
+  padding: 2px 14px 10px;
+  max-height: calc(100vh - 280px);
+  overflow: auto;
+}
+
+.scale-panel.on .scale-body { display: block; }
+
+.sc-row { margin-top: 8px; text-align: center; }
+.sc-name { font-size: 12px; color: var(--navy); }
+.sc-name span { color: #666; }
+.sc-bar { display: flex; height: 14px; margin-top: 3px; border: 1px solid #0003; }
+.sc-bar i { flex: 1; }
+.sc-tick { display: flex; font-size: 10px; color: #444; }
+.sc-tick span { flex: 1; text-align: center; }
+
+.scale-body details { margin-top: 10px; font-size: 12px; }
+.scale-body summary { cursor: pointer; color: var(--navy); font-weight: 600; }
+.scale-body table { font-size: 12px; }v
