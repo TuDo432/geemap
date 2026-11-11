@@ -14,7 +14,16 @@ function drawScale(c){
   <div class="hint">Mỗi ô màu ứng với một khoảng ${st.toFixed(k==='LST'?2:3)}${UN[k]} · mã màu: ${v.palette.join(', ')}</div></div>`;}).join('');
  const rows=['TVDI','LST'].flatMap(k=>(c[k]||[]).map(x=>({k,...x})));
  $('clsTab').innerHTML=rows.length?'<b>Phân cấp mức độ (bảng PhanCap_UHI_Khohan)</b>'+tbl([T('k','Chỉ số'),T('name','Mức độ'),T('lo','Từ'),T('hi','Đến'),{k:'color',l:'Màu',f:v=>`<span class="sw" style="background:${v}"></span> ${v}`}],rows):'';}
-(async()=>{let c={};try{c=await J('/api/classes');VISJS=c.vis;}catch(e){}CLS=c;drawScale(c);})();
+
+ drawScale({});   // vẽ ngay thang màu mặc định, không chờ server
+(async()=>{
+  try{
+    const c=await J('/api/classes');
+    if(c.vis)VISJS=c.vis;
+    CLS=c;
+    drawScale(c);   // vẽ lại, lúc này có thêm bảng phân cấp từ CSDL
+  }catch(e){console.error('Không tải được /api/classes:',e);}
+})();
 
 /* thanh trượt độ trong suốt lớp chỉ số: chỉ gắn khi thanh trượt tồn tại trong index.html */
 (()=>{const el=$('op');if(!el)return;
