@@ -1,4 +1,6 @@
-/* ===== MỤC BẢN ĐỒ: thanh icon | khu vực nội dung | bản đồ ===== */
+/* ===== MỤC BẢN ĐỒ: thanh icon | bản đồ (cột nội dung nổi trên bản đồ) ===== */
+#v-map { position: relative; }
+
 #rail {
   width: 64px;
   flex: none;
@@ -71,13 +73,17 @@
 
 #rail .rb:hover::after { opacity: 1; }
 
+/* cột nội dung NỔI trên bản đồ: bản đồ luôn rộng tối đa */
 #side {
+  position: absolute;
+  left: 64px;              /* ngay sau thanh icon */
+  top: 0;
+  bottom: 0;
   width: 340px;
-  flex: none;
   display: flex;
   flex-direction: column;
   background: #f7f9fb;
-  box-shadow: 2px 0 6px #0002;
+  box-shadow: 2px 0 10px #0004;
   z-index: 1000;
   min-height: 0;
   transition: width .15s;
@@ -262,3 +268,7 @@
 .scale-body details { margin-top: 10px; font-size: 12px; }
 .scale-body summary { cursor: pointer; color: var(--navy); font-weight: 600; }
 .scale-body table { font-size: 12px; }
+
+/* ===== TOÀN MÀN HÌNH (Fullscreen API) ===== */
+#v-map:fullscreen { height: 100vh; background: #fff; }
+#v-map:-webkit-full-screen { height: 100vh; background: #fff; }

@@ -66,7 +66,9 @@ function layerBox(bases){
 /* Bản đồ chỉ được tạo khi mở mục Bản đồ lần đầu (lúc đó khung bản đồ đã có kích thước thật, tránh lệch vị trí) */
 function initMap(){
  if(map)return;
- map=L.map('map',{minZoom:6,maxBounds:VN,maxBoundsViscosity:1}).fitBounds(HCM);
+ /* nút zoom đặt góc dưới phải để không bị cột nổi bên trái che */
+ map=L.map('map',{minZoom:6,maxBounds:VN,maxBoundsViscosity:1,zoomControl:false}).fitBounds(HCM);
+ L.control.zoom({position:'bottomright'}).addTo(map);
  map.createPane('gee');map.getPane('gee').style.zIndex=250;
  map.createPane('mask');map.getPane('mask').style.zIndex=300;map.getPane('mask').style.pointerEvents='none';
  /* các nền Esri không cần API key */
@@ -93,20 +95,31 @@ function addLayer(l,name,show=true){dyn.push(l);ctrl.addOverlay(l,name);if(show)
 function dropLayer(l){if(!l)return;ctrl.removeLayer(l);map.removeLayer(l);dyn=dyn.filter(x=>x!==l);}
 function clearLayers(){dyn.forEach(l=>{ctrl.removeLayer(l);map.removeLayer(l);});dyn=[];gridGroup=distLayer=maskLayer=outlineLayer=geeLayer=null;distLayers={};}
 
-/* ---------- thanh icon (kiểu Discord) + cột nội dung bên cạnh bản đồ ---------- */
+/* ---------- thanh icon (kiểu Discord) + cột nội dung nổi trên bản đồ ---------- */
 const PT={ctl:'Bảng điều khiển',year:'Thống kê theo năm',grid:'Ô lưới (bản đồ hiện tại)',dist:'Phường/xã',live:'Bảng thời gian thực (khung nhìn)',img:'Ảnh Landsat',hist:'Lịch sử quét'};
 let sideP='ctl';
 const fixMap=()=>setTimeout(()=>map&&map.invalidateSize(),50);
 function showSide(p){sideP=p;$('v-map').classList.remove('wide');
- document.querySelectorAll('#rail .rb').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+ document.querySelectorAll('#rail .rb[data-p]').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
  $('panel').style.display=p==='ctl'?'block':'none';
  $('datapane').style.display=p==='ctl'?'none':'flex';
  $('side').classList.toggle('data',p!=='ctl');$('dtitle').textContent=PT[p]||'';
  if(p!=='ctl'){tab=p;sortKey=null;render();}
  fixMap();}
 function railClick(p){const m=$('v-map');
- if(sideP===p&&!m.classList.contains('wide')){m.classList.add('wide');document.querySelectorAll('#rail .rb').forEach(b=>b.classList.remove('on'));fixMap();}   // bấm lại icon đang chọn: thu gọn cột
+ if(sideP===p&&!m.classList.contains('wide')){m.classList.add('wide');document.querySelectorAll('#rail .rb[data-p]').forEach(b=>b.classList.remove('on'));fixMap();}   // bấm lại icon đang chọn: thu gọn cột
  else showSide(p);}
+
+/* toàn màn hình thật (ẩn thanh trình duyệt): bản đồ + thanh icon + bảng nổi vẫn dùng bình thường */
+function toggleFull(){
+ const el=$('v-map');
+ if(document.fullscreenElement)document.exitFullscreen();
+ else if(el.requestFullscreen)el.requestFullscreen();
+}
+document.addEventListener('fullscreenchange',()=>{
+ const b=$('fsBtn');if(b)b.dataset.tip=document.fullscreenElement?'Thoát toàn màn hình':'Toàn màn hình';
+ fixMap();
+});
 
 /* ---------- ranh giới + số liệu phường/xã (TP.HCM sau sáp nhập, không gồm Côn Đảo) ---------- */
 function buildMask(){      // làm tối phần ngoài ranh giới TP.HCM
@@ -169,6 +182,8 @@ async function run(){
   const e=d.edges;msg.className=d.db_error?'err':'ok';
   msg.textContent=(d.db_error||'Hoàn tất')+` · ${d.n_images} ảnh Landsat 8/9 · Ts_max = ${e.a.toFixed(1)} ${e.b<0?'−':'+'} ${Math.abs(e.b).toFixed(1)}·NDVI, Ts_min = ${e.tmin.toFixed(1)}°C`;
   loadRegions($('yr').value,$('c').value);       // không chờ: bản đồ đã hiện, phường/xã tải sau
+  $('v-map').classList.add('wide');              // thu cột bên trái, bản đồ rộng tối đa (bấm icon để mở lại)
+  document.querySelectorAll('#rail .rb[data-p]').forEach(b=>b.classList.remove('on'));fixMap();
  }catch(err){msg.className='err';msg.textContent='Lỗi: '+err.message;}finally{btn.disabled=false;}
 }
 

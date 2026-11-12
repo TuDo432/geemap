@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="/static/css/base.css?v=1">
 <link rel="stylesheet" href="/static/css/cover.css?v=1">
 <link rel="stylesheet" href="/static/css/layout.css?v=1">
-<link rel="stylesheet" href="/static/css/map.css?v=3">
+<link rel="stylesheet" href="/static/css/map.css?v=4">
 <link rel="stylesheet" href="/static/css/tables.css?v=1">
 <link rel="stylesheet" href="/static/css/tools.css?v=1">
 <link rel="stylesheet" href="/static/css/auto.css?v=1">
@@ -29,7 +29,6 @@
 <!-- ===== KHUNG ỨNG DỤNG ===== -->
 <div id="app">
  <header><img class="hlogo" src="/static/img/Logo.png" alt="" onerror="this.style.display='none'">
-     <button class="full" onclick="location.href='/static/map.html'">🗺 Bản đồ toàn màn hình</button>
   <nav>
    <button data-v="map" onclick="go('map')">Bản đồ</button>
    <button data-v="stats" onclick="go('stats')">Bảng thống kê</button>
@@ -52,8 +51,10 @@
    <button class="rb" data-p="live" data-tip="Bảng thời gian thực (khung nhìn)" aria-label="Thời gian thực" onclick="railClick('live')">⏱️</button>
    <button class="rb" data-p="img" data-tip="Ảnh Landsat" aria-label="Ảnh Landsat" onclick="railClick('img')">🛰️</button>
    <button class="rb" data-p="hist" data-tip="Lịch sử quét" aria-label="Lịch sử quét" onclick="railClick('hist')">🕘</button>
+   <div class="sep"></div>
+   <button class="rb" id="fsBtn" data-tip="Toàn màn hình" aria-label="Toàn màn hình" onclick="toggleFull()">⛶</button>
   </div>
-  <!-- khu vực hiện bảng điều khiển / bảng dữ liệu -->
+  <!-- khu vực hiện bảng điều khiển / bảng dữ liệu (nổi trên bản đồ) -->
   <div id="side">
   <div id="panel"><h3>Bản đồ chỉ số</h3><div class="hint">Landsat 8/9 · mùa khô T12–T4</div>
    <label>Chỉ số<select id="idx" onchange="$('cls').disabled=$('idx').value==='NDVI'"><option value="LST">LST – Nhiệt độ bề mặt (°C)</option><option value="NDVI">NDVI – Thực vật</option><option value="TVDI">TVDI – Khô hạn</option></select></label>
@@ -186,7 +187,7 @@
 <!-- thứ tự nạp quan trọng: core đầu tiên, main cuối cùng -->
 <script src="/static/js/core.js?v=1"></script>
 <script src="/static/js/nav.js?v=2"></script>
-<script src="/static/js/map.js?v=1"></script>
+<script src="/static/js/map.js?v=2"></script>
 <script src="/static/js/tables.js?v=1"></script>
 <script src="/static/js/scan.js?v=1"></script>
 <script src="/static/js/series.js?v=1"></script>
@@ -196,5 +197,5 @@
 <script src="/static/js/export.js?v=1"></script>
 <script src="/static/js/history.js?v=1"></script>
 <script src="/static/js/auto.js?v=1"></script>
-<script src="/static/js/main.js?v=3"></script>
+<script src="/static/js/main.js?v=4"></script>
 </body></html>

@@ -34,6 +34,3 @@ try{if(localStorage.getItem('scaleOn')==='1')toggleScale(true);}catch(e){}
 /* tải dữ liệu ban đầu */
 render();loadAll();
 fetch('/api/scan/status').then(r=>r.json()).then(s=>{if(s.running){$('scan').disabled=true;poll();}});
-
-/* nút "⌂ Trang chính" ở map.html trỏ về /#home: bỏ qua bìa, vào thẳng bản đồ */
-if(location.hash==='#home'){enter();history.replaceState(null,'',location.pathname);}
