@@ -1,5 +1,9 @@
-/* ===== CHUỖI THỜI GIAN, KIỂM CHỨNG, DỰ BÁO ===== */
+/* ===== CHUỖI THỜI GIAN, KIỂM CHỨNG, DỰ BÁO =====
+   Vẽ biểu đồ Chart.js khổ lớn trong thẻ có tiêu đề; typography do main.js đặt mặc định chung. */
 let mode='year',chart;
+const SE_T={year:['Biểu đồ theo mùa khô (nhiều năm)','Bảng số liệu theo mùa khô'],
+ month:['Biểu đồ theo tháng','Bảng số liệu theo tháng'],
+ combo:['Kết hợp: cột NDVI + đường LST · TVDI','Bảng số liệu theo mùa khô']};
 async function loadAll(){try{yearRows=await (await fetch('/api/timeseries')).json();monthRows=await (await fetch('/api/monthly')).json();}catch(e){}
  if(tab==='year')render();drawSeries();valid();
  if(toolTab==='ana')drawAna();}
@@ -8,14 +12,22 @@ function forecast(){const x=yearRows.map(r=>r.Nam),L=x[x.length-1],o={};for(cons
  return [1,2,3].map(h=>{const yv=L+h,r={y:yv};for(const k in K){const v=o[k].a+o[k].b*yv;r[k]=k==='LST'?v:Math.max(0,Math.min(1,v));r[k+'sd']=1.96*o[k].sd;}return r;});}
 function drawSeries(){
  const isY=mode!=='month',R=isY?yearRows:monthRows;chart&&chart.destroy();chart=null;
- if(!R.length){$('smsg2').textContent=isY?'Chưa có dữ liệu. Vào mục Bản đồ và bấm "Quét & lưu".':'Chưa có dữ liệu theo tháng. Chạy WebGIS_bosung_pg.sql rồi quét lại.';$('stw').innerHTML='';return;}
+ const T=SE_T[mode]||SE_T.year;$('seChartT').textContent=T[0];$('seTabT').textContent=T[1];
+ if(!R.length){$('smsg2').textContent='';$('stw').innerHTML=`<div class="empty">${isY?'Chưa có dữ liệu. Vào mục Bản đồ › Quét chuỗi thời gian rồi bấm "Quét &amp; lưu".':'Chưa có dữ liệu theo tháng. Chạy WebGIS_bosung_pg.sql rồi quét lại (chế độ "Chuỗi năm + chuỗi tháng").'}</div>`;return;}
  $('smsg2').textContent='';const g=k=>R.map(r=>r[k]==null?null:+r[k]);let labels=R.map(r=>isY?String(r.Nam):r.Thang_Nam);
- const ds=[['LST (°C)','LST_TrungBinh','#d32f2f','y'],['NDVI','NDVI_TrungBinh','#2e7d32','y1'],['TVDI','TVDI_TrungBinh','#f9a825','y1']].map(([l,k,c,ax])=>({label:l,data:g(k),borderColor:c,yAxisID:ax,tension:.2}));
+ const ds=[['LST (°C)','LST_TrungBinh','#d32f2f','y'],['NDVI','NDVI_TrungBinh','#2e7d32','y1'],['TVDI','TVDI_TrungBinh','#f9a825','y1']].map(([l,k,c,ax])=>({label:l,data:g(k),borderColor:c,backgroundColor:c,yAxisID:ax,tension:.2}));
  if(mode==='combo'){ds[1].type='bar';ds[1].backgroundColor='#81c784aa';}   /* biểu đồ kết hợp: cột NDVI + đường LST, TVDI */
  if(mode==='year'&&R.length>=4){const f=forecast(),n=R.length;labels=[...labels,...f.map(r=>String(r.y))];ds.forEach(d=>d.data.push(null,null,null));
-  [['LST','#d32f2f','y'],['NDVI','#2e7d32','y1'],['TVDI','#f9a825','y1']].forEach(([k,c,ax],i)=>ds.push({label:k+' (dự báo)',borderColor:c,borderDash:[6,4],yAxisID:ax,pointStyle:'triangle',
+  [['LST','#d32f2f','y'],['NDVI','#2e7d32','y1'],['TVDI','#f9a825','y1']].forEach(([k,c,ax],i)=>ds.push({label:k+' (dự báo)',borderColor:c,backgroundColor:c,borderDash:[6,4],pointStyle:'triangle',pointRadius:4,
    data:[...Array(n-1).fill(null),ds[i].data[n-1],...f.map(r=>r[k])]}));}
- chart=new Chart($('chart'),{type:'line',data:{labels,datasets:ds},options:{scales:{y:{position:'left',title:{display:true,text:'LST (°C)'}},y1:{position:'right',min:0,max:1,grid:{drawOnChartArea:false}}}}});
+ const ax=(t)=>({title:{display:true,text:t,font:{size:14.5,weight:'700'},color:'#0b2a4a'},ticks:{font:{size:14},color:'#33475c'},grid:{color:'#e6ecf3'}});
+ chart=new Chart($('chart'),{type:'line',data:{labels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,
+  interaction:{mode:'index',intersect:false},
+  plugins:{legend:{position:'top',align:'start',labels:{usePointStyle:true,boxWidth:9,padding:18,font:{size:14.5,weight:'600'},color:'#22303d'}},
+   tooltip:{backgroundColor:'#0b2a4a',padding:12,cornerRadius:10,usePointStyle:true,titleFont:{size:15,weight:'700'},bodyFont:{size:14}}},
+  scales:{x:{grid:{display:false},ticks:{font:{size:14},color:'#33475c',maxRotation:0,autoSkip:true}},
+   y:{position:'left',...ax('LST (°C)')},
+   y1:{position:'right',min:0,max:1,grid:{drawOnChartArea:false},...ax('NDVI · TVDI')}}}});
  sortKey=null;$('stw').innerHTML=tbl(isY?YC:MC,R);}
 function valid(){
  const R=yearRows;if(R.length<4){$('vtab').innerHTML='<div class="empty">Cần tối thiểu 4 năm dữ liệu (quét ở mục Bản đồ).</div>';$('ftab').innerHTML='';return;}

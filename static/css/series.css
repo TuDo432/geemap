@@ -1,0 +1,14 @@
+/* ===== CHUỖI THỜI GIAN (hiển thị biểu đồ) =====
+   Biểu đồ luôn có chiều cao lớn, nét mảnh–màu đậm; số liệu trên trục ≥14px
+   (font chữ dùng mặc định Chart.js đã đặt trong main.js). */
+
+.se-chart {
+  position: relative;
+  height: clamp(380px, 52vh, 560px);
+  padding-top: 6px;
+}
+.se-chart canvas { max-width: 100%; }
+
+@media (max-width: 720px) {
+  .se-chart { height: 420px; }
+}

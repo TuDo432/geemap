@@ -1,0 +1,181 @@
+/* ===== BẢN THỐNG KÊ (tối ưu UX) =====
+   Bố cục 1 cột giữa ≥1240px, nhịp spacing 8px, chữ bảng ≥15px,
+   mỗi kết quả là một thẻ có tiêu đề — quét mắt từ trên xuống là nắm được bố cục. */
+
+.pg.pg-stats {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 26px 32px 64px;
+}
+
+/* ---------- thanh tiêu đề + công cụ chọn năm ---------- */
+.tx-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  padding-bottom: 18px;
+  border-bottom: 2px solid var(--blue);
+}
+.tx-id h2 {
+  margin: 0;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -.3px;
+  color: var(--navy);
+}
+.tx-sub { margin-top: 5px; font-size: 14.5px; color: #57687a; font-weight: 600; }
+
+.tx-pick { display: flex; align-items: flex-end; gap: 12px; }
+.tx-pick label {
+  width: 210px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #33475c;
+}
+.tx-pick select {
+  width: 100%;
+  font-size: 15.5px;
+  font-weight: 600;
+  color: #1d2733;
+  padding: 9px 11px;
+  margin-top: 4px;
+  border: 1.5px solid #c2cfdd;
+  border-radius: 9px;
+  background: #fff;
+}
+.tx-pick button.b {
+  width: auto;
+  margin: 0;
+  padding: 11px 22px;
+  font-size: 15.5px;
+  font-weight: 700;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(26, 115, 232, .35);
+}
+
+/* ---------- tabs công cụ (bỏ số 1–5, dạng pill lớn, dễ đọc) ---------- */
+.seg-stats { margin: 18px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.seg-stats button {
+  width: auto;
+  margin: 0;
+  padding: 10px 19px;
+  background: #fff;
+  border: 1.5px solid #c2cfdd;
+  border-radius: 999px;
+  color: #33475c;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.seg-stats button:hover { border-color: var(--blue); color: var(--blue); background: #f2f7fd; }
+.seg-stats button.on {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(26, 115, 232, .35);
+}
+
+/* ---------- dòng trạng thái + mô tả dẫn đề ---------- */
+.tx-status { margin-top: 14px; font-size: 14.5px; min-height: 1em; }
+.tx-lead {
+  margin-top: 12px;
+  padding: 14px 18px;
+  background: #eef5ff;
+  border: 1px solid #cfe2fa;
+  border-left: 5px solid var(--blue);
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #24425f;
+}
+
+/* ---------- thẻ kết quả: tiêu đề + bảng biểu/ô trống ---------- */
+.tx-out { margin-top: 20px; }
+.tx-block {
+  margin-top: 18px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 1px 5px rgba(11, 42, 74, .07);
+  overflow: hidden;
+}
+.tx-out .tx-block:first-child { margin-top: 0; }
+.tx-t {
+  margin: 0 !important;
+  padding: 14px 18px 12px;
+  border-top: 0 !important;
+  border-bottom: 1px solid #e6ecf3;
+  background: #f6f9fc;
+  color: var(--navy);
+  font-size: 17.5px;
+  font-weight: 800;
+  letter-spacing: -.1px;
+  line-height: 1.3;
+}
+.tx-body { padding: 6px 18px 16px; }
+
+/* bảng số liệu: lớn, giãn dòng rộng, số thẳng hàng thập phân, kẻ sọc nhẹ */
+.tx-body table { font-size: 15px; font-variant-numeric: tabular-nums; }
+.tx-body th,
+.tx-body td { padding: 11px 14px; border-bottom: 1px solid #e9eef4; }
+.tx-body th {
+  font-size: 14.5px;
+  color: var(--navy);
+  background: #eef3f9;
+}
+.tx-body tbody tr:nth-child(even) { background: #fafcfe; }
+.tx-body tbody tr:hover { background: #e8f0fe; }
+
+/* bảng nhiệt: ô màu lớn, chữ đậm có viền bóng để đọc trên mọi nền */
+.tx-block table.heat td {
+  padding: 12px 14px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #12233a;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .5), 0 -1px 0 rgba(0, 0, 0, .35);
+}
+.tx-block table.heat td.hz {
+  text-align: left;
+  color: var(--navy);
+  background: #f2f6fa !important;
+  text-shadow: none;
+  font-weight: 700;
+}
+
+/* chips chỉ số nhanh (mức pixel) */
+.tx-chips { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 12px; }
+.tx-chips span {
+  background: #eef3f9;
+  border: 1px solid #d5dfe9;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 15px;
+  color: #33475c;
+}
+.tx-chips b { color: var(--navy); font-size: 16.5px; font-variant-numeric: tabular-nums; }
+
+.tx-block .empty {
+  font-size: 15px;
+  color: #57687a;
+  background: #f7fafc;
+  border: 1px dashed #c2cfdd;
+  border-radius: 10px;
+  padding: 22px 18px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* màn hẹp: hero xếp chồng, nút kéo toàn rộng */
+@media (max-width: 720px) {
+  .pg.pg-stats { padding: 18px 16px 48px; }
+  .tx-pick { flex: 1; width: 100%; }
+  .tx-pick label { flex: 1; width: auto; }
+}
+
+/* bảng dài: tự cuộn trong thẻ + giữ header dính (th sticky đã có trong tables.css) */
+.tx-body .tw { max-height: 62vh; }

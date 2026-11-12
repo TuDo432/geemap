@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="/static/css/layout.css?v=2">
 <link rel="stylesheet" href="/static/css/map.css?v=9">
 <link rel="stylesheet" href="/static/css/tables.css?v=1">
+<link rel="stylesheet" href="/static/css/stats.css?v=2">
+<link rel="stylesheet" href="/static/css/series.css?v=1">
 <link rel="stylesheet" href="/static/css/tools.css?v=1">
 <link rel="stylesheet" href="/static/css/auto.css?v=1">
 </head><body>
@@ -158,17 +160,41 @@
    </div>
   </section>
 
- <!-- ===== 2. BẢNG THỐNG KÊ ===== -->
- <section id="v-stats" class="view"><div class="pg">
-  <div class="row row-stat"><label>Năm (mùa khô)<select id="sy"></select></label><button class="b btn-flush" onclick="drawStats()">Tính thống kê</button></div>
-  <div class="seg wrap" id="sseg"><button data-t="desc" class="on" onclick="setS('desc')">1. Mô tả cơ bản</button><button data-t="spa" onclick="setS('spa')">2. Không gian</button><button data-t="tim" onclick="setS('tim')">3. Thời gian</button><button data-t="cor" onclick="setS('cor')">4. Tương quan</button><button data-t="cls" onclick="setS('cls')">5. Theo lớp phủ</button></div>
-  <div class="msg" id="smsg3"></div><div id="sdesc" class="msg msg-desc"></div><div id="sw" class="tw mt-8"></div></div></section>
+  <!-- ===== 2. BẢNG THỐNG KÊ (bản tối ưu: tiêu đề + năm công cụ, tab bỏ số 1–5) ===== -->
+  <section id="v-stats" class="view"><div class="pg pg-stats">
+   <div class="tx-hero">
+    <div class="tx-id">
+     <h2>Bảng thống kê</h2>
+     <div class="tx-sub">Landsat 8/9 · mùa khô T12–T4</div>
+    </div>
+    <div class="tx-pick">
+     <label>Năm (mùa khô)<select id="sy"></select></label>
+     <button class="b btn-flush" onclick="drawStats()">Tính thống kê</button>
+    </div>
+   </div>
+   <div class="seg wrap seg-stats" id="sseg"><button data-t="desc" class="on" onclick="setS('desc')">Mô tả cơ bản</button><button data-t="spa" onclick="setS('spa')">Không gian</button><button data-t="tim" onclick="setS('tim')">Thời gian</button><button data-t="cor" onclick="setS('cor')">Tương quan</button><button data-t="cls" onclick="setS('cls')">Theo lớp phủ</button></div>
+   <div class="msg tx-status" id="smsg3"></div><div id="sdesc" class="tx-lead"></div><div id="sw" class="tx-out"></div></div></section>
 
- <!-- ===== 3. CHUỖI THỜI GIAN ===== -->
- <section id="v-series" class="view"><div class="pg">
-  <div class="seg"><button id="mY" class="on" onclick="setMode('year')">Theo mùa khô (năm)</button><button id="mM" onclick="setMode('month')">Theo tháng</button><button id="mC" onclick="setMode('combo')">Kết hợp (cột NDVI + đường LST, TVDI)</button></div>
-  <div class="msg" id="smsg2"></div><div class="chart-box"><canvas id="chart" height="110"></canvas></div><div id="stw" class="tw mt-12"></div>
-  <div class="msg msg-muted">Mùa khô được tổng hợp từ T12 năm trước đến T4 nên giá trị theo mùa chính là giá trị của năm. Đường nét đứt là dự báo cơ sở (tab Công cụ › Kiểm chứng &amp; dự báo).</div></div></section>
+  <!-- ===== 3. CHUỖI THỜI GIAN (tối ưu: card có tiêu đề, chữ biểu đồ lớn) ===== -->
+  <section id="v-series" class="view"><div class="pg pg-stats">
+   <div class="tx-hero">
+    <div class="tx-id">
+     <h2>Chuỗi thời gian</h2>
+     <div class="tx-sub">Diễn biến trung bình LST · NDVI · TVDI qua các mùa khô và trong từng tháng</div>
+    </div>
+   </div>
+   <div class="seg wrap seg-stats">
+    <button id="mY" class="on" onclick="setMode('year')">Theo mùa khô (năm)</button>
+    <button id="mM" onclick="setMode('month')">Theo tháng</button>
+    <button id="mC" onclick="setMode('combo')">Kết hợp: cột NDVI + đường LST, TVDI</button>
+   </div>
+   <div class="msg tx-status" id="smsg2"></div>
+   <div class="tx-out">
+    <div class="tx-block"><h4 class="tx-t" id="seChartT">Biểu đồ chuỗi thời gian</h4>
+     <div class="tx-body"><div class="se-chart"><canvas id="chart"></canvas></div></div></div>
+    <div class="tx-block"><h4 class="tx-t" id="seTabT">Bảng số liệu theo mùa khô</h4>
+     <div class="tx-body"><div id="stw" class="tw"></div></div></div>
+    <div class="tx-lead">Mùa khô được tổng hợp từ T12 năm trước đến T4 nên giá trị theo mùa chính là giá trị của năm. Đường nét đứt là dự báo cơ sở (tab Công cụ › Kiểm chứng &amp; dự báo).</div></div></div></section>
 
  <!-- ===== 4. TỰ ĐỘNG HÓA ===== -->
  <section id="v-auto" class="view"><div class="pg">
@@ -262,12 +288,12 @@
 <script src="/static/js/map3d.js?v=2"></script>
 <script src="/static/js/tables.js?v=2"></script>
 <script src="/static/js/scan.js?v=1"></script>
-<script src="/static/js/series.js?v=1"></script>
+<script src="/static/js/series.js?v=2"></script>
 <script src="/static/js/analysis.js?v=1"></script>
-<script src="/static/js/stats.js?v=1"></script>
+<script src="/static/js/stats.js?v=2"></script>
 <script src="/static/js/charts.js?v=1"></script>
 <script src="/static/js/export.js?v=1"></script>
 <script src="/static/js/history.js?v=1"></script>
 <script src="/static/js/auto.js?v=1"></script>
-<script src="/static/js/main.js?v=4"></script>
+<script src="/static/js/main.js?v=5"></script>
 </body></html>

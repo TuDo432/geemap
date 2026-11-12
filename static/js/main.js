@@ -1,5 +1,28 @@
 /* ===== KHỞI ĐỘNG (nạp CUỐI CÙNG, sau khi mọi file khác đã sẵn sàng) ===== */
 
+/* Chart.js: mặc định typography chung cho mọi biểu đồ (cỡ lớn, tương phản cao) */
+if(window.Chart){
+ Chart.defaults.font.family='"Segoe UI", sans-serif';
+ Chart.defaults.font.size=14;
+ Chart.defaults.color='#33475c';
+ Chart.defaults.plugins.title.font={size:17,weight:'700'};
+ Chart.defaults.plugins.title.color='#0b2a4a';
+ Chart.defaults.plugins.title.padding={top:4,bottom:16};
+ Chart.defaults.plugins.legend.labels.font={size:14.5,weight:'600'};
+ Chart.defaults.plugins.legend.labels.color='#22303d';
+ Chart.defaults.plugins.legend.labels.usePointStyle=true;
+ Chart.defaults.plugins.legend.labels.boxWidth=9;
+ Chart.defaults.plugins.legend.labels.padding=16;
+ Chart.defaults.plugins.tooltip.backgroundColor='#0b2a4a';
+ Chart.defaults.plugins.tooltip.padding=12;
+ Chart.defaults.plugins.tooltip.cornerRadius=10;
+ Chart.defaults.plugins.tooltip.titleFont={size:15,weight:'700'};
+ Chart.defaults.plugins.tooltip.bodyFont={size:14};
+ Chart.defaults.elements.line.borderWidth=2.5;
+ Chart.defaults.elements.point.radius=3;
+ Chart.defaults.elements.point.hoverRadius=6.5;
+}
+
 /* điền danh sách năm vào các ô chọn */
 for(const id of ['yr','ey','sy','cy']){for(let y=Y;y>=2016;y--)$(id).add(new Option(y,y));$(id).value=Math.min(2025,Y);}
 $('y2').value=Y;
