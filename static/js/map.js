@@ -98,7 +98,7 @@ function clearLayers(){dyn.forEach(l=>{ctrl.removeLayer(l);map.removeLayer(l);})
 /* ---------- thanh icon (kiểu Discord) + cột nội dung nổi trên bản đồ ---------- */
 const PT={ctl:'Bảng điều khiển',year:'Thống kê theo năm',grid:'Ô lưới (bản đồ hiện tại)',dist:'Phường/xã',live:'Bảng thời gian thực (khung nhìn)',img:'Ảnh Landsat',hist:'Lịch sử quét'};
 let sideP='ctl';
-const fixMap=()=>setTimeout(()=>map&&map.invalidateSize(),50);
+const fixMap=()=>setTimeout(()=>{if(map)map.invalidateSize();if(typeof m3!=='undefined'&&m3)m3.resize();},50);
 function showSide(p){sideP=p;$('v-map').classList.remove('wide');
  document.querySelectorAll('#rail .rb[data-p]').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
  $('panel').style.display=p==='ctl'?'block':'none';
@@ -141,6 +141,7 @@ function buildDistricts(){
 function applyDistricts(){
  if(!lastOutline||!geo)return;
  buildDistricts();
+ sync3D();      // cập nhật cột nổi 3D theo phường/xã
  const m=$('rgmsg');m.className='msg';m.textContent='Bấm vào phường/xã trên bản đồ để xem số liệu, hoặc mở mục "Phường/xã" ở thanh công cụ bên trái.';
  if(tab==='dist')render();
 }
@@ -181,6 +182,7 @@ async function run(){
   gridRows=d.geojson.features.map(f=>({...f.properties,gi:(gi[f.properties.Code]||{}).z,nhom:(gi[f.properties.Code]||{}).nhom}));setTab('grid',false);
   const e=d.edges;msg.className=d.db_error?'err':'ok';
   msg.textContent=(d.db_error||'Hoàn tất')+` · ${d.n_images} ảnh Landsat 8/9 · Ts_max = ${e.a.toFixed(1)} ${e.b<0?'−':'+'} ${Math.abs(e.b).toFixed(1)}·NDVI, Ts_min = ${e.tmin.toFixed(1)}°C`;
+  lastTile=d.tile_url;lastGrid=d.geojson;sync3D();   // đẩy dữ liệu sang bản đồ 3D (map3d.js)
   loadRegions($('yr').value,$('c').value);       // không chờ: bản đồ đã hiện, phường/xã tải sau
   $('v-map').classList.add('wide');              // thu cột bên trái, bản đồ rộng tối đa (bấm icon để mở lại)
   document.querySelectorAll('#rail .rb[data-p]').forEach(b=>b.classList.remove('on'));fixMap();

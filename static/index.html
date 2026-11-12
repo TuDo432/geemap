@@ -3,10 +3,11 @@
 <title>WebGIS TP.HCM</title>
 <link rel="icon" type="image/png" href="/static/img/Logo.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="/static/css/base.css?v=1">
 <link rel="stylesheet" href="/static/css/cover.css?v=1">
 <link rel="stylesheet" href="/static/css/layout.css?v=1">
-<link rel="stylesheet" href="/static/css/map.css?v=6">
+<link rel="stylesheet" href="/static/css/map.css?v=7">
 <link rel="stylesheet" href="/static/css/tables.css?v=1">
 <link rel="stylesheet" href="/static/css/tools.css?v=1">
 <link rel="stylesheet" href="/static/css/auto.css?v=1">
@@ -85,6 +86,25 @@
   </div>
   <!-- bản đồ + bảng thông số nổi bên phải + thang màu nổi (giữa, phía dưới) -->
   <div id="right"><div id="map"></div>
+   <!-- bản đồ 3D (MapLibre): chỉ hiện khi bấm nút 3D -->
+   <div id="map3d"></div>
+   <!-- chuyển 2D / 3D -->
+   <div id="viewSwitch" class="vsw">
+    <button class="on" data-m="2d" onclick="setView('2d')">2D</button>
+    <button data-m="3d" onclick="setView('3d')">3D</button>
+   </div>
+   <!-- tuỳ chọn riêng cho 3D -->
+   <div id="p3d" class="p3d">
+    <b>Bản đồ 3D</b>
+    <label>Cột nổi theo
+     <select id="u3" onchange="sync3D()">
+      <option value="grid">Ô lưới</option>
+      <option value="ward">Phường/xã</option>
+      <option value="none">Không (chỉ ảnh + địa hình)</option>
+     </select></label>
+    <label>Chiều cao cột (m)<input type="range" id="h3" min="500" max="6000" step="250" value="2500" oninput="sync3D()"></label>
+    <label>Độ phóng đại địa hình<input type="range" id="x3" min="1" max="5" step="0.5" value="1.5" oninput="terrain3D()"></label>
+   </div>
    <!-- bảng thông số toàn thành phố (đã tách khỏi cột trái, nổi ở mép phải bản đồ) -->
    <div id="stats">
     <div class="st-head"><b>Toàn thành phố</b>
@@ -198,11 +218,13 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<!-- thứ tự nạp quan trọng: core đầu tiên, main cuối cùng -->
+<!-- thứ tự nạp quan trọng: core đầu tiên, main cuối cùng; map3d.js sau map.js -->
 <script src="/static/js/core.js?v=1"></script>
 <script src="/static/js/nav.js?v=2"></script>
-<script src="/static/js/map.js?v=2"></script>
+<script src="/static/js/map.js?v=3"></script>
+<script src="/static/js/map3d.js?v=1"></script>
 <script src="/static/js/tables.js?v=1"></script>
 <script src="/static/js/scan.js?v=1"></script>
 <script src="/static/js/series.js?v=1"></script>

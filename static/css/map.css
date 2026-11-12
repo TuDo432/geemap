@@ -332,3 +332,53 @@
 /* ===== TOÀN MÀN HÌNH (Fullscreen API) ===== */
 #v-map:fullscreen { height: 100vh; background: #fff; }
 #v-map:-webkit-full-screen { height: 100vh; background: #fff; }
+
+/* ===== BẢN ĐỒ 3D (MapLibre) + nút chuyển 2D/3D ===== */
+#map3d { flex: 1; min-height: 150px; display: none; }
+#right.is3d #map { display: none; }
+#right.is3d #map3d { display: block; }
+
+.vsw {
+  position: absolute;
+  z-index: 1001;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  background: rgba(255, 255, 255, .96);
+  border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .3);
+  overflow: hidden;
+}
+
+.vsw button {
+  margin: 0;
+  padding: 6px 18px;
+  border: 0;
+  background: transparent;
+  color: var(--navy);
+  font: 600 13px "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+
+.vsw button.on { background: var(--blue); color: #fff; }
+
+.p3d {
+  display: none;
+  position: absolute;
+  z-index: 1001;
+  top: 10px;
+  right: 10px;
+  width: 230px;
+  background: rgba(255, 255, 255, .96);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .3);
+  font-size: 13px;
+}
+
+.p3d label { margin-top: 6px; font-size: 12px; }
+.p3d select,
+.p3d input[type=range] { width: 100%; padding: 3px; margin-top: 2px; }
+#right.is3d .p3d { display: block; }
+.maplibregl-popup-content { font: 13px "Segoe UI", sans-serif; }

@@ -40,3 +40,36 @@ bash
 git checkout origin/main -- ten_file_cua_ban.js
 Hãy thận trọng khi sử dụng mã.
 Nếu bạn gặp khó khăn ở bước nào, hãy cho tôi biết bạn đã lỡ push bản code sai lên GitHub chưa và tên nhánh (branch) bạn đang dùng để tôi viết chính xác dòng lệnh cho bạn nhé?
+
+Để xem danh sách các phiên bản (lịch sử các lần update/commit) đã được đẩy lên GitHub, bạn sử dụng lệnh git log trong Terminal tại thư mục dự án.
+Dưới đây là các lệnh hữu ích nhất từ đơn giản đến chi tiết để bạn kiểm tra:
+
+1. Xem danh sách các phiên bản đã đẩy lên GitHub (Khuyên dùng)
+
+Trước tiên, bạn cần cập nhật thông tin mới nhất từ GitHub về máy, sau đó xem lịch sử của nhánh trên GitHub (ví dụ nhánh main):
+bash
+git fetch origin
+git log origin/main --oneline
+Hãy thận trọng khi sử dụng mã.
+• Kết quả hiển thị: Mỗi dòng là một phiên bản gồm mã ID (7 ký tự) và lời nhắn lúc bạn cập nhật (Ví dụ: 9f8e7d6 Sửa lỗi đăng nhập).
+• (Lưu ý: Nếu danh sách quá dài và bị kẹt màn hình, hãy nhấn phím Q để thoát).
+
+2. Xem lịch sử chi tiết (kèm ngày giờ và người cập nhật)
+
+Nếu bạn muốn biết chính xác phiên bản đó được đẩy lên lúc nào để dễ chọn đúng bản cần khôi phục:
+bash
+git log origin/main --stat
+Hãy thận trọng khi sử dụng mã.
+• Lệnh này sẽ hiển thị đầy đủ: Mã ID dài, Tên người đẩy, Ngày giờ cập nhật và Danh sách các file đã thay đổi trong lần update đó.
+
+3. Xem trực quan bằng biểu đồ nhánh (Dễ nhìn nhất)
+
+bash
+git log --graph --oneline --all
+Hãy thận trọng khi sử dụng mã.
+• Lệnh này cho thấy cả lịch sử trên máy tính (HEAD -> main) lẫn lịch sử đang nằm trên GitHub (origin/main), giúp bạn dễ dàng so sánh máy tính và GitHub đang lệch nhau ở phiên bản nào.
+
+Mẹo nhỏ: Xem trực tiếp trên trình duyệt web
+
+Ngoài dùng mã lệnh, bạn có thể mở kho lưu trữ (repository) của mình trên GitHub.com, nhìn ở góc phải phía trên danh sách file và nhấn vào nút có biểu tượng đồng hồ Commits (ví dụ: 15 Commits). Tại đó có nút Copy mã ID của từng phiên bản rất tiện lợi.
+Bạn đã tìm thấy mã ID của phiên bản cũ muốn quay lại chưa? Nếu cần, hãy gửi mã ID đó hoặc báo lại để tôi hướng dẫn bước khôi phục tiếp theo nhé.
