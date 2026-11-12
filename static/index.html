@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="/static/css/base.css?v=1">
 <link rel="stylesheet" href="/static/css/cover.css?v=1">
 <link rel="stylesheet" href="/static/css/layout.css?v=1">
-<link rel="stylesheet" href="/static/css/map.css?v=4">
+<link rel="stylesheet" href="/static/css/map.css?v=6">
 <link rel="stylesheet" href="/static/css/tables.css?v=1">
 <link rel="stylesheet" href="/static/css/tools.css?v=1">
 <link rel="stylesheet" href="/static/css/auto.css?v=1">
@@ -62,21 +62,36 @@
    <label><input type="checkbox" id="cls"> Phân loại theo mức độ (PhanCap_UHI_Khohan)</label>
    <label>Độ trong suốt lớp chỉ số<input type="range" id="op" min="0.1" max="1" step="0.05" value="0.6" style="width:100%"></label>
    <button class="b" id="btn" onclick="run()">Hiển thị bản đồ</button><div class="msg" id="msg"></div>
-   <h4>Vùng hiển thị</h4>
-   <label><input type="checkbox" id="dist" checked onchange="buildDistricts()"> Hiện ranh giới phường/xã</label>
-   <label><input type="checkbox" id="fill" onchange="buildDistricts()"> Tô màu phường/xã theo trung bình chỉ số</label>
+   <!-- hai mục dưới đây thu gọn mặc định; bấm tiêu đề để bung ra (thêm thuộc tính "open" vào <details> nếu muốn mở sẵn) -->
+   <details class="fold">
+    <summary>Vùng hiển thị</summary>
+    <div class="fold-body">
+     <label><input type="checkbox" id="dist" checked onchange="buildDistricts()"> Hiện ranh giới phường/xã</label>
+     <label><input type="checkbox" id="fill" onchange="buildDistricts()"> Tô màu phường/xã theo trung bình chỉ số</label>
+    </div>
+   </details>
    <div class="msg" id="rgmsg"></div>
-   <div id="stats"><b>Toàn thành phố</b><br>Trung bình: <span id="m"></span> · Độ lệch chuẩn: <span id="sd"></span><br>Nhỏ nhất: <span id="mn"></span> · Lớn nhất: <span id="mx"></span><br>Số pixel hợp lệ: <span id="n"></span>
-    <div id="moran"></div><div id="legend"></div><div id="lg"><span id="l0"></span><span id="l1"></span></div><div id="chips"></div></div>
-   <h4>Quét chuỗi thời gian (lưu PostgreSQL)</h4>
-   <div class="row"><label>Từ năm<input type="number" id="y1" value="2016" min="2014"></label><label>Đến năm<input type="number" id="y2" min="2014"></label></div>
-   <label>Chế độ quét<select id="mode"><option value="year">Chuỗi năm (ưu tiên, nhanh hơn)</option><option value="month">Chuỗi năm + chuỗi tháng</option></select></label>
-   <button class="b alt" id="scan" onclick="scan()">Quét &amp; lưu</button><div class="msg" id="smsg"></div></div>
+   <details class="fold">
+    <summary>Quét chuỗi thời gian (lưu PostgreSQL)</summary>
+    <div class="fold-body">
+     <div class="row"><label>Từ năm<input type="number" id="y1" value="2016" min="2014"></label><label>Đến năm<input type="number" id="y2" min="2014"></label></div>
+     <label>Chế độ quét<select id="mode"><option value="year">Chuỗi năm (ưu tiên, nhanh hơn)</option><option value="month">Chuỗi năm + chuỗi tháng</option></select></label>
+     <button class="b alt" id="scan" onclick="scan()">Quét &amp; lưu</button>
+    </div>
+   </details>
+   <div class="msg" id="smsg"></div></div>
   <div id="datapane"><div id="dhead"><b id="dtitle"></b><span class="sp"></span><button class="tool" onclick="dlcsv()">Tải CSV</button></div>
   <div id="livebar"><label>Đơn vị thống kê<select id="liveU" onchange="render()"><option value="cell">Ô lưới</option><option value="dist">Phường/xã</option></select></label><div id="livesum"></div></div><div id="tw" class="tw"></div></div>
   </div>
-  <!-- bản đồ + thang màu nổi (giữa, phía dưới) -->
+  <!-- bản đồ + bảng thông số nổi bên phải + thang màu nổi (giữa, phía dưới) -->
   <div id="right"><div id="map"></div>
+   <!-- bảng thông số toàn thành phố (đã tách khỏi cột trái, nổi ở mép phải bản đồ) -->
+   <div id="stats">
+    <div class="st-head"><b>Toàn thành phố</b>
+     <button type="button" class="st-toggle" title="Thu nhỏ / mở rộng bảng số liệu" aria-label="Thu nhỏ / mở rộng bảng số liệu"
+      onclick="var p=this.closest('#stats');p.classList.toggle('min');this.textContent=p.classList.contains('min')?'+':'–';">–</button></div>
+    <div class="st-body">Trung bình: <span id="m"></span> · Độ lệch chuẩn: <span id="sd"></span><br>Nhỏ nhất: <span id="mn"></span> · Lớn nhất: <span id="mx"></span><br>Số pixel hợp lệ: <span id="n"></span>
+     <div id="moran"></div><div id="legend"></div><div id="lg"><span id="l0"></span><span id="l1"></span></div><div id="chips"></div></div></div>
    <div id="scalePanel" class="scale-panel">
     <button id="scaleBtn" class="scale-head" onclick="toggleScale()" aria-expanded="false" title="Thu nhỏ / mở rộng thang màu">
      <span>🎨 Thang màu LST · NDVI · TVDI</span><span id="scaleArrow">+</span></button>

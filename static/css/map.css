@@ -101,17 +101,77 @@
   flex: 1;
 }
 
+/* mục thu gọn trong bảng điều khiển: Vùng hiển thị, Quét chuỗi thời gian */
+#panel .fold {
+  margin-top: 14px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#panel .fold summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 12px;
+  background: #eef2f7;
+  color: var(--navy);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+#panel .fold summary::-webkit-details-marker { display: none; }
+#panel .fold summary::after { content: "+"; font-size: 18px; line-height: 1; }
+#panel .fold[open] summary::after { content: "–"; }
+#panel .fold summary:hover { background: #e3eaf3; }
+#panel .fold[open] summary { border-bottom: 1px solid var(--border); }
+#panel .fold-body { padding: 4px 12px 12px; }
+
 #right { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
 #map { flex: 1; min-height: 150px; }
 
+/* bảng thông số toàn thành phố: nổi ở mép phải bản đồ (phía trên nút zoom +/-) */
 #stats {
-  margin-top: 12px;
+  position: absolute;
+  right: 10px;
+  bottom: 120px;            /* nằm trên nút zoom; muốn lên góc trên thì đổi thành top: 70px và xóa dòng bottom */
+  z-index: 1001;
+  width: 290px;
+  max-height: calc(100% - 200px);
+  overflow: auto;
   font-size: 13px;
-  background: #fff;
-  border-radius: 6px;
-  padding: 8px;
-  display: none;
+  background: rgba(255, 255, 255, .96);
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .3);
+  padding: 10px 12px;
+  display: none;            /* map.js bật display:block sau khi bấm "Hiển thị bản đồ" */
 }
+
+/* nút – / + thu gọn bảng số liệu */
+#stats .st-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+
+#stats .st-toggle {
+  width: 26px;
+  height: 26px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: #eef3fa;
+  color: var(--navy);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#stats .st-toggle:hover { background: #dbe6f5; }
+#stats .st-body { margin-top: 4px; }
+#stats.min .st-body { display: none; }
+#stats.min { width: auto; min-width: 190px; }
 
 #moran { margin-top: 6px; }
 #legend { height: 12px; border-radius: 3px; margin-top: 6px; }
