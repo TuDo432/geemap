@@ -1,0 +1,42 @@
+
+Sử dụng Terminal / Git (Chuyên nghiệp, dùng khi cập nhật code thường xuyên)
+
+Nếu bạn đã cài đặt Git trên máy tính, hãy mở thư mục chứa mã nguồn trong Terminal (hoặc Git Bash) và chạy lần lượt các lệnh sau:
+git status
+git add .
+git commit -m "Cập nhật mã nguồn mới"
+git push origin main
+
+Để khôi phục (quay lại) mã nguồn về phiên bản cũ trước khi bị sửa sai trên laptop thông qua GitHub, bạn hãy mở Terminal (hoặc Git Bash) tại thư mục dự án và chọn một trong các trường hợp phù hợp nhất dưới đây:
+
+Trường hợp 1: Bạn vừa sửa sai trên máy tính và CHƯA đưa lên GitHub (Chưa commit / push)
+
+Nếu bạn chỉ muốn xóa bỏ toàn bộ các thay đổi lỗi hiện tại trên laptop và lấy lại bản sạch giống hệt trên GitHub, hãy chạy lệnh:
+bash
+git fetch origin
+git reset --hard origin/main
+Hãy thận trọng khi sử dụng mã.
+(Lưu ý: Thay main bằng tên nhánh của bạn nếu dùng master. Lệnh này sẽ ghi đè toàn bộ code hiện tại trên máy tính bằng phiên bản mới nhất đang có trên GitHub).
+
+Trường hợp 2: Bạn ĐÃ lỡ đưa bản code sai lên GitHub rồi
+
+Bạn cần quay ngược thời gian về một commit (lần lưu) cũ hơn trước khi xảy ra lỗi:
+1. Xem danh sách lịch sử các lần cập nhật để lấy mã ID (hash):bash
+git log --oneline
+Hãy thận trọng khi sử dụng mã.
+(Màn hình sẽ hiện ra các dòng có mã 7 ký tự ở đầu, ví dụ: a1b2c3d Cập nhật giao diện. Hãy chọn mã của phiên bản chạy tốt trước đó).
+2. Đưa code trên máy tính về đúng phiên bản cũ đó:bash
+git reset --hard <mã-ID-phiên-bản-cũ>
+Hãy thận trọng khi sử dụng mã.
+(Ví dụ: git reset --hard a1b2c3d)
+3. Cập nhật lại bản cũ này lên GitHub để đồng bộ:bash
+git push --force origin main
+Hãy thận trọng khi sử dụng mã.
+
+Trường hợp 3: Chỉ muốn khôi phục lại 1 file bị sửa sai duy nhất
+
+Nếu các file khác vẫn ổn và bạn chỉ muốn lấy lại bản gốc từ GitHub cho một file cụ thể (ví dụ index.html):
+bash
+git checkout origin/main -- ten_file_cua_ban.js
+Hãy thận trọng khi sử dụng mã.
+Nếu bạn gặp khó khăn ở bước nào, hãy cho tôi biết bạn đã lỡ push bản code sai lên GitHub chưa và tên nhánh (branch) bạn đang dùng để tôi viết chính xác dòng lệnh cho bạn nhé?
