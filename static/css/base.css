@@ -19,6 +19,9 @@ body {
   color: var(--text);
 }
 
+/* control kế thừa font của body để đồng bộ cỡ chữ (mục tiêu: dễ đọc) */
+button, select, input, textarea { font-family: inherit; }
+
 h3 { margin: 0 0 4px; }
 
 h4 {

@@ -6,8 +6,8 @@
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="/static/css/base.css?v=1">
 <link rel="stylesheet" href="/static/css/cover.css?v=1">
-<link rel="stylesheet" href="/static/css/layout.css?v=1">
-<link rel="stylesheet" href="/static/css/map.css?v=7">
+<link rel="stylesheet" href="/static/css/layout.css?v=2">
+<link rel="stylesheet" href="/static/css/map.css?v=9">
 <link rel="stylesheet" href="/static/css/tables.css?v=1">
 <link rel="stylesheet" href="/static/css/tools.css?v=1">
 <link rel="stylesheet" href="/static/css/auto.css?v=1">
@@ -40,88 +40,123 @@
   <button class="back" onclick="leave()">Bìa</button></header>
  <main>
 
- <!-- ===== 1. BẢN ĐỒ ===== -->
- <section id="v-map" class="view">
-  <!-- thanh icon công cụ kiểu Discord -->
-  <div id="rail">
-   <button class="rb on" data-p="ctl" data-tip="Bảng điều khiển" aria-label="Bảng điều khiển" onclick="railClick('ctl')">⚙️</button>
-   <div class="sep"></div>
-   <button class="rb" data-p="year" data-tip="Thống kê theo năm" aria-label="Thống kê theo năm" onclick="railClick('year')">📊</button>
-   <button class="rb" data-p="grid" data-tip="Ô lưới (bản đồ hiện tại)" aria-label="Ô lưới" onclick="railClick('grid')">🔲</button>
-   <button class="rb" data-p="dist" data-tip="Phường/xã" aria-label="Phường/xã" onclick="railClick('dist')">🏘️</button>
-   <button class="rb" data-p="live" data-tip="Bảng thời gian thực (khung nhìn)" aria-label="Thời gian thực" onclick="railClick('live')">⏱️</button>
-   <button class="rb" data-p="img" data-tip="Ảnh Landsat" aria-label="Ảnh Landsat" onclick="railClick('img')">🛰️</button>
-   <button class="rb" data-p="hist" data-tip="Lịch sử quét" aria-label="Lịch sử quét" onclick="railClick('hist')">🕘</button>
-   <div class="sep"></div>
-   <button class="rb" id="fsBtn" data-tip="Toàn màn hình" aria-label="Toàn màn hình" onclick="toggleFull()">⛶</button>
-  </div>
-  <!-- khu vực hiện bảng điều khiển / bảng dữ liệu (nổi trên bản đồ) -->
-  <div id="side">
-  <div id="panel"><h3>Bản đồ chỉ số</h3><div class="hint">Landsat 8/9 · mùa khô T12–T4</div>
-   <label>Chỉ số<select id="idx" onchange="$('cls').disabled=$('idx').value==='NDVI'"><option value="LST">LST – Nhiệt độ bề mặt (°C)</option><option value="NDVI">NDVI – Thực vật</option><option value="TVDI">TVDI – Khô hạn</option></select></label>
-   <div class="row"><label>Năm (mùa khô)<select id="yr"></select></label><label>Mây tối đa (%)<input type="number" id="c" value="30" min="0" max="100"></label></div>
-   <label><input type="checkbox" id="cls"> Phân loại theo mức độ (PhanCap_UHI_Khohan)</label>
-   <label>Độ trong suốt lớp chỉ số<input type="range" id="op" min="0.1" max="1" step="0.05" value="0.6" style="width:100%"></label>
-   <button class="b" id="btn" onclick="run()">Hiển thị bản đồ</button><div class="msg" id="msg"></div>
-   <!-- hai mục dưới đây thu gọn mặc định; bấm tiêu đề để bung ra (thêm thuộc tính "open" vào <details> nếu muốn mở sẵn) -->
-   <details class="fold">
-    <summary>Vùng hiển thị</summary>
-    <div class="fold-body">
-     <label><input type="checkbox" id="dist" checked onchange="buildDistricts()"> Hiện ranh giới phường/xã</label>
-     <label><input type="checkbox" id="fill" onchange="buildDistricts()"> Tô màu phường/xã theo trung bình chỉ số</label>
+  <!-- ===== 1. BẢN ĐỒ: MỘT BẢNG ĐIỀU KHIỂN DUY NHẤT, thu gọn bằng 1 nút ===== -->
+  <section id="v-map" class="view">
+   <aside id="console" aria-label="Bảng điều khiển bản đồ">
+    <div class="con-head">
+     <b>🎛️ Bảng điều khiển</b><span class="sp"></span>
+     <div id="viewSwitch" class="vsw" role="group" aria-label="Chuyển 2D / 3D">
+      <button class="on" data-m="2d" onclick="setView('2d')" aria-pressed="true">2D</button>
+      <button data-m="3d" onclick="setView('3d')" aria-pressed="false">3D</button>
+     </div>
+     <button id="conToggle" onclick="toggleConsole()" aria-expanded="true" aria-controls="console"
+      aria-label="Thu gọn bảng điều khiển" title="Thu gọn bảng điều khiển">«</button>
     </div>
-   </details>
-   <div class="msg" id="rgmsg"></div>
-   <details class="fold">
-    <summary>Quét chuỗi thời gian (lưu PostgreSQL)</summary>
-    <div class="fold-body">
-     <div class="row"><label>Từ năm<input type="number" id="y1" value="2016" min="2014"></label><label>Đến năm<input type="number" id="y2" min="2014"></label></div>
-     <label>Chế độ quét<select id="mode"><option value="year">Chuỗi năm (ưu tiên, nhanh hơn)</option><option value="month">Chuỗi năm + chuỗi tháng</option></select></label>
-     <button class="b alt" id="scan" onclick="scan()">Quét &amp; lưu</button>
+    <div class="con-body">
+
+     <!-- NHÓM 1: lớp chỉ số + ranh giới -->
+     <details class="fold" id="f-ctl" open>
+      <summary>🗺️ Lớp chỉ số</summary>
+      <div class="fold-body">
+       <label>Chỉ số<select id="idx" onchange="$('cls').disabled=$('idx').value==='NDVI'"><option value="LST">LST – Nhiệt độ bề mặt (°C)</option><option value="NDVI">NDVI – Thực vật</option><option value="TVDI">TVDI – Khô hạn</option></select></label>
+       <div class="row"><label>Năm (mùa khô)<select id="yr"></select></label><label>Mây tối đa (%)<input type="number" id="c" value="30" min="0" max="100"></label></div>
+       <label><input type="checkbox" id="cls"> Phân loại theo mức độ (PhanCap_UHI_Khohan)</label>
+       <label>Độ trong suốt lớp chỉ số<input type="range" id="op" min="0.1" max="1" step="0.05" value="0.6" style="width:100%"></label>
+       <button class="b" id="btn" onclick="run()">Hiển thị bản đồ</button>
+       <div class="msg" id="msg"></div>
+       <div class="sub">
+        <label><input type="checkbox" id="dist" checked onchange="buildDistricts()"> Hiện ranh giới phường/xã</label>
+        <label><input type="checkbox" id="fill" onchange="buildDistricts()"> Tô màu phường/xã theo trung bình chỉ số</label>
+       </div>
+       <div class="msg" id="rgmsg"></div>
+      </div>
+     </details>
+
+     <!-- NHÓM 2: thống kê toàn thành phố (id giữ nguyên cho map.js) -->
+     <details class="fold" id="f-stat">
+      <summary>📊 Thống kê toàn thành phố</summary>
+      <div class="fold-body">
+       <div id="stats"><div class="st-body">
+        <div class="st-grid">
+         <div><span class="st-l">Trung bình</span><span class="st-v" id="m"></span></div>
+         <div><span class="st-l">Độ lệch chuẩn</span><span class="st-v" id="sd"></span></div>
+         <div><span class="st-l">Nhỏ nhất</span><span class="st-v" id="mn"></span></div>
+         <div><span class="st-l">Lớn nhất</span><span class="st-v" id="mx"></span></div>
+        </div>
+        <div class="st-pix"><span class="st-l">Số pixel hợp lệ</span><span class="st-v" id="n"></span></div>
+        <div id="moran"></div><div id="legend"></div><div id="lg"><span id="l0"></span><span id="l1"></span></div><div id="chips"></div>
+       </div></div>
+       <div class="hint" id="statHint">Bấm “Hiển thị bản đồ” để nạp số liệu.</div>
+      </div>
+     </details>
+
+     <!-- NHÓM 3: thang màu (giữ cơ chế #scalePanel cho nav.js/main.js) -->
+     <div id="scalePanel" class="scale-panel">
+      <button id="scaleBtn" class="scale-head" onclick="toggleScale()" aria-expanded="false" title="Thu nhỏ / mở rộng thang màu">
+       <span>🎨 Thang màu LST · NDVI · TVDI</span><span id="scaleArrow">+</span></button>
+      <div class="scale-body">
+       <div id="scale"></div>
+       <details><summary>Phân cấp mức độ</summary><div id="clsTab" class="tw"></div></details>
+      </div>
+     </div>
+
+     <!-- NHÓM 4: tuỳ chọn 3D -->
+     <details class="fold" id="f-3d">
+      <summary>🧊 Hiển thị 3D</summary>
+      <div class="fold-body"><div id="p3d">
+       <label>Cột nổi theo
+        <select id="u3" onchange="sync3D()">
+         <option value="grid">Ô lưới</option>
+         <option value="ward">Phường/xã</option>
+         <option value="none">Không (chỉ ảnh + địa hình)</option>
+        </select></label>
+       <label>Chiều cao cột (m)<input type="range" id="h3" min="500" max="6000" step="250" value="2500" oninput="sync3D()"></label>
+       <label>Độ phóng đại địa hình<input type="range" id="x3" min="1" max="5" step="0.5" value="1.5" oninput="terrain3D()"></label>
+      </div></div>
+     </details>
+
+     <!-- NHÓM 5: quét chuỗi thời gian -->
+     <details class="fold" id="f-scan">
+      <summary>⏳ Quét chuỗi thời gian (PostgreSQL)</summary>
+      <div class="fold-body">
+       <div class="row"><label>Từ năm<input type="number" id="y1" value="2016" min="2014"></label><label>Đến năm<input type="number" id="y2" min="2014"></label></div>
+       <label>Chế độ quét<select id="mode"><option value="year">Chuỗi năm (ưu tiên, nhanh hơn)</option><option value="month">Chuỗi năm + chuỗi tháng</option></select></label>
+       <button class="b alt" id="scan" onclick="scan()">Quét &amp; lưu</button>
+       <div class="msg" id="smsg"></div>
+      </div>
+     </details>
+
+     <!-- NHÓM 6: bảng dữ liệu (thay 6 nút bảng của thanh icon cũ) -->
+     <details class="fold" id="f-data">
+      <summary>📋 Bảng dữ liệu</summary>
+      <div class="fold-body">
+       <div class="dt-row">
+        <label>Bảng<select id="dtab" onchange="showSide(this.value)">
+         <option value="year">Theo năm (mùa khô)</option>
+         <option value="grid">Ô lưới (bản đồ hiện tại)</option>
+         <option value="dist">Phường/xã</option>
+         <option value="live">Thời gian thực (khung nhìn)</option>
+         <option value="img">Ảnh Landsat</option>
+         <option value="hist">Lịch sử quét</option>
+        </select></label>
+        <button class="tool" onclick="dlcsv()">⬇ Tải CSV</button>
+       </div>
+       <div id="livebar"><label>Đơn vị thống kê<select id="liveU" onchange="render()"><option value="cell">Ô lưới</option><option value="dist">Phường/xã</option></select></label><div id="livesum"></div></div>
+       <div id="tw" class="tw"></div>
+      </div>
+     </details>
+
     </div>
-   </details>
-   <div class="msg" id="smsg"></div></div>
-  <div id="datapane"><div id="dhead"><b id="dtitle"></b><span class="sp"></span><button class="tool" onclick="dlcsv()">Tải CSV</button></div>
-  <div id="livebar"><label>Đơn vị thống kê<select id="liveU" onchange="render()"><option value="cell">Ô lưới</option><option value="dist">Phường/xã</option></select></label><div id="livesum"></div></div><div id="tw" class="tw"></div></div>
-  </div>
-  <!-- bản đồ + bảng thông số nổi bên phải + thang màu nổi (giữa, phía dưới) -->
-  <div id="right"><div id="map"></div>
-   <!-- bản đồ 3D (MapLibre): chỉ hiện khi bấm nút 3D -->
-   <div id="map3d"></div>
-   <!-- chuyển 2D / 3D -->
-   <div id="viewSwitch" class="vsw">
-    <button class="on" data-m="2d" onclick="setView('2d')">2D</button>
-    <button data-m="3d" onclick="setView('3d')">3D</button>
+   </aside>
+   <!-- nút mở lại sau khi thu gọn: dán mép trái bản đồ -->
+   <button id="conHandle" onclick="toggleConsole()" aria-label="Mở bảng điều khiển">⚙️ Bảng điều khiển</button>
+
+   <!-- bản đồ luôn rộng tối đa: bảng nổi đè trên, không chiếm layout -->
+   <div id="right"><div id="map"></div>
+    <div id="map3d"></div>
+    <button type="button" class="map-btn float-fs" id="fsBtn" data-tip="Toàn màn hình" aria-label="Toàn màn hình" onclick="toggleFull()">⛶&nbsp;Toàn màn hình</button>
    </div>
-   <!-- tuỳ chọn riêng cho 3D -->
-   <div id="p3d" class="p3d">
-    <b>Bản đồ 3D</b>
-    <label>Cột nổi theo
-     <select id="u3" onchange="sync3D()">
-      <option value="grid">Ô lưới</option>
-      <option value="ward">Phường/xã</option>
-      <option value="none">Không (chỉ ảnh + địa hình)</option>
-     </select></label>
-    <label>Chiều cao cột (m)<input type="range" id="h3" min="500" max="6000" step="250" value="2500" oninput="sync3D()"></label>
-    <label>Độ phóng đại địa hình<input type="range" id="x3" min="1" max="5" step="0.5" value="1.5" oninput="terrain3D()"></label>
-   </div>
-   <!-- bảng thông số toàn thành phố (đã tách khỏi cột trái, nổi ở mép phải bản đồ) -->
-   <div id="stats">
-    <div class="st-head"><b>Toàn thành phố</b>
-     <button type="button" class="st-toggle" title="Thu nhỏ / mở rộng bảng số liệu" aria-label="Thu nhỏ / mở rộng bảng số liệu"
-      onclick="var p=this.closest('#stats');p.classList.toggle('min');this.textContent=p.classList.contains('min')?'+':'–';">–</button></div>
-    <div class="st-body">Trung bình: <span id="m"></span> · Độ lệch chuẩn: <span id="sd"></span><br>Nhỏ nhất: <span id="mn"></span> · Lớn nhất: <span id="mx"></span><br>Số pixel hợp lệ: <span id="n"></span>
-     <div id="moran"></div><div id="legend"></div><div id="lg"><span id="l0"></span><span id="l1"></span></div><div id="chips"></div></div></div>
-   <div id="scalePanel" class="scale-panel">
-    <button id="scaleBtn" class="scale-head" onclick="toggleScale()" aria-expanded="false" title="Thu nhỏ / mở rộng thang màu">
-     <span>🎨 Thang màu LST · NDVI · TVDI</span><span id="scaleArrow">+</span></button>
-    <div class="scale-body">
-     <div id="scale"></div>
-     <details><summary>Phân cấp mức độ</summary><div id="clsTab" class="tw"></div></details>
-    </div>
-   </div>
-  </div>
- </section>
+  </section>
 
  <!-- ===== 2. BẢNG THỐNG KÊ ===== -->
  <section id="v-stats" class="view"><div class="pg">
@@ -223,9 +258,9 @@
 <!-- thứ tự nạp quan trọng: core đầu tiên, main cuối cùng; map3d.js sau map.js -->
 <script src="/static/js/core.js?v=1"></script>
 <script src="/static/js/nav.js?v=2"></script>
-<script src="/static/js/map.js?v=3"></script>
-<script src="/static/js/map3d.js?v=1"></script>
-<script src="/static/js/tables.js?v=1"></script>
+<script src="/static/js/map.js?v=4"></script>
+<script src="/static/js/map3d.js?v=2"></script>
+<script src="/static/js/tables.js?v=2"></script>
 <script src="/static/js/scan.js?v=1"></script>
 <script src="/static/js/series.js?v=1"></script>
 <script src="/static/js/analysis.js?v=1"></script>

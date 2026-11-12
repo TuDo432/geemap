@@ -1,293 +1,258 @@
-/* ===== MỤC BẢN ĐỒ: thanh icon | bản đồ (cột nội dung nổi trên bản đồ) ===== */
+/* ===== MỤC BẢN ĐỒ: MỘT BẢNG ĐIỀU KHIỂN HỢP NHẤT =====
+   UX: mọi công cụ nhóm lại trong #console (drawer nổi trên bản đồ),
+   1 nút « thu gọn – 1 nút mở ở mép trái; bản đồ luôn chiếm 100% diện tích.
+   Chữ tối thiểu 14px, số liệu 16–20px, điểm chạm ≥40px, tương phản AA. */
+:root { --conw: 400px; }
+
 #v-map { position: relative; }
 
-#rail {
-  width: 64px;
-  flex: none;
-  background: var(--navy);
+/* ---------- 1. NGĂN CHỨA CHÍNH ---------- */
+#right { position: absolute; inset: 0; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+#map, #map3d { flex: 1; min-height: 150px; }
+#map3d { display: none; }
+#right.is3d #map { display: none; }
+#right.is3d #map3d { display: block; }
+
+/* nút toàn màn hình: cụm nổi góc dưới phải, trên nút zoom */
+.float-fs {
+  position: absolute;
+  right: 14px;
+  bottom: 132px;
+  z-index: 1001;
+  font-size: 14.5px;
+}
+
+/* ---------- 2. BẢNG ĐIỀU KHIỂN HỢP NHẤT (drawer trái, đè trên bản đồ) ---------- */
+#console {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  bottom: 12px;
+  width: min(var(--conw), calc(100% - 24px));
+  z-index: 1200;
   display: flex;
   flex-direction: column;
+  background: #f5f8fb;
+  border: 1px solid #d5dfe9;
+  border-radius: 16px;
+  box-shadow: 0 10px 34px rgba(4, 20, 41, .34);
+  overflow: hidden;
+  transition: transform .18s ease, opacity .18s ease;
+}
+
+/* đầu drawer: tiêu đề + 2D/3D + nút thu gọn */
+.con-head {
+  display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 0;
-  z-index: 1100;
-}
-
-#rail .sep {
-  width: 28px;
-  height: 2px;
-  border-radius: 1px;
-  background: rgba(255, 255, 255, .18);
-}
-
-#rail .rb {
-  position: relative;
-  width: 44px;
-  height: 44px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, .12);
-  font-size: 20px;
-  line-height: 44px;
-  cursor: pointer;
-  transition: border-radius .15s, background .15s;
-}
-
-#rail .rb:hover,
-#rail .rb.on { border-radius: 14px; background: var(--blue); }
-
-#rail .rb::before {           /* thanh trắng báo mục đang chọn */
-  content: "";
-  position: absolute;
-  left: -10px;
-  top: 50%;
-  width: 4px;
-  height: 0;
-  border-radius: 0 4px 4px 0;
-  background: #fff;
-  transform: translateY(-50%);
-  transition: height .15s;
-}
-
-#rail .rb:hover::before { height: 20px; }
-#rail .rb.on::before { height: 34px; }
-
-#rail .rb::after {            /* tooltip tên công cụ */
-  content: attr(data-tip);
-  position: absolute;
-  left: 58px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: #111;
+  padding: 12px 14px;
+  background: var(--navy);
   color: #fff;
-  padding: 5px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .12s;
+  flex: none;
 }
+.con-head b { font-size: 16.5px; letter-spacing: -.1px; }
+.con-head .sp { flex: 1; }
 
-#rail .rb:hover::after { opacity: 1; }
+/* pills 2D/3D (dùng chung #viewSwitch cũ) */
+.vsw { display: flex; background: rgba(255, 255, 255, .14); border-radius: 999px; overflow: hidden; }
+.vsw button {
+  margin: 0;
+  padding: 7px 18px;
+  border: 0;
+  background: transparent;
+  color: #cfe0f3;
+  font: 700 14px/1 "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+.vsw button.on { background: var(--blue); color: #fff; }
 
-/* cột nội dung NỔI trên bản đồ: bản đồ luôn rộng tối đa */
-#side {
+#conToggle {
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, .35);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .10);
+  color: #fff;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  flex: none;
+}
+#conToggle:hover { background: rgba(255, 255, 255, .25); }
+
+/* thân drawer: cuộn */
+.con-body { flex: 1; overflow: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+/* nút mở lại khi đã thu gọn: tab nổi ở mép trái */
+#conHandle {
+  display: none;
   position: absolute;
-  left: 64px;              /* ngay sau thanh icon */
-  top: 0;
-  bottom: 0;
-  width: 340px;
-  display: flex;
-  flex-direction: column;
-  background: #f7f9fb;
-  box-shadow: 2px 0 10px #0004;
-  z-index: 1000;
-  min-height: 0;
-  transition: width .15s;
+  left: 12px;
+  top: 12px;
+  z-index: 1200;
+  margin: 0;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--navy);
+  color: #fff;
+  font: 700 15px/1 "Segoe UI", sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(4, 20, 41, .35);
 }
+#conHandle:hover { background: #12406b; }
 
-#side.data { width: 560px; }   /* mở bảng dữ liệu thì cột rộng hơn */
-#v-map.wide #side { display: none; }
+/* trạng thái thu gọn: trả toàn bộ khung nhìn cho bản đồ */
+#v-map.noc #console { transform: translateX(calc(-100% - 20px)); opacity: 0; pointer-events: none; }
+#v-map.noc #conHandle { display: block; }
 
-#panel {
-  width: 100%;
-  padding: 16px;
-  background: #f7f9fb;
-  z-index: 1000;
-  overflow: auto;
-  flex: 1;
-}
-
-/* mục thu gọn trong bảng điều khiển: Vùng hiển thị, Quét chuỗi thời gian */
-#panel .fold {
-  margin-top: 14px;
+/* ---------- 3. NHÓM CÔNG CỤ (collapse từng section) ---------- */
+.con-body .fold {
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 1px 3px rgba(11, 42, 74, .06);
+  flex: none;
 }
-
-#panel .fold summary {
+.con-body .fold summary {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 9px 12px;
-  background: #eef2f7;
+  gap: 10px;
+  padding: 13px 15px;
+  background: #e9eff6;
   color: var(--navy);
-  font-weight: 600;
-  font-size: 14px;
+  font-weight: 700;
+  font-size: 15.5px;
   cursor: pointer;
   list-style: none;
   user-select: none;
 }
+.con-body .fold summary::-webkit-details-marker { display: none; }
+.con-body .fold summary::after { content: "+"; font-size: 22px; font-weight: 600; line-height: 1; color: var(--navy); }
+.con-body .fold[open] summary::after { content: "–"; }
+.con-body .fold summary:hover { background: #dde7f2; }
+.con-body .fold[open] summary { border-bottom: 1px solid var(--border); }
+.con-body .fold-body { padding: 6px 15px 15px; }
 
-#panel .fold summary::-webkit-details-marker { display: none; }
-#panel .fold summary::after { content: "+"; font-size: 18px; line-height: 1; }
-#panel .fold[open] summary::after { content: "–"; }
-#panel .fold summary:hover { background: #e3eaf3; }
-#panel .fold[open] summary { border-bottom: 1px solid var(--border); }
-#panel .fold-body { padding: 4px 12px 12px; }
-
-#right { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
-#map { flex: 1; min-height: 150px; }
-
-/* bảng thông số toàn thành phố: nổi ở mép phải bản đồ (phía trên nút zoom +/-) */
-#stats {
-  position: absolute;
-  right: 10px;
-  bottom: 120px;            /* nằm trên nút zoom; muốn lên góc trên thì đổi thành top: 70px và xóa dòng bottom */
-  z-index: 1001;
-  width: 290px;
-  max-height: calc(100% - 200px);
-  overflow: auto;
-  font-size: 13px;
-  background: rgba(255, 255, 255, .96);
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, .3);
-  padding: 10px 12px;
-  display: none;            /* map.js bật display:block sau khi bấm "Hiển thị bản đồ" */
+/* nhãn + ô nhập trong mọi nhóm */
+.con-body label {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #33475c;
+  margin-top: 14px;
 }
-
-/* nút – / + thu gọn bảng số liệu */
-#stats .st-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-
-#stats .st-toggle {
-  width: 26px;
-  height: 26px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 6px;
-  background: #eef3fa;
-  color: var(--navy);
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-#stats .st-toggle:hover { background: #dbe6f5; }
-#stats .st-body { margin-top: 4px; }
-#stats.min .st-body { display: none; }
-#stats.min { width: auto; min-width: 190px; }
-
-#moran { margin-top: 6px; }
-#legend { height: 12px; border-radius: 3px; margin-top: 6px; }
-#lg { display: flex; justify-content: space-between; font-size: 12px; }
-#chips div { font-size: 12px; margin-top: 3px; }
-
-#chips span {
-  display: inline-block;
-  width: 14px;
-  height: 10px;
-  margin-right: 6px;
-  border: 1px solid #0003;
-}
-
-.map-btn {
+.con-body label:has(input[type=checkbox]) { font-weight: 500; }
+.con-body select,
+.con-body input[type=number] {
+  width: 100%;
+  font-size: 15.5px;
+  padding: 9px 11px;
+  margin-top: 5px;
+  border: 1.5px solid #c2cfdd;
+  border-radius: 9px;
   background: #fff;
-  border: 2px solid rgba(0, 0, 0, .25);
-  border-radius: 4px;
-  padding: 6px 10px;
-  font-size: 13px;
-  cursor: pointer;
+  color: #1d2733;
 }
+.con-body select:hover,
+.con-body input[type=number]:hover { border-color: #90a9c4; }
+.con-body select:disabled,
+.con-body input[type=number]:disabled { background: #edf1f5; color: #8a97a5; }
+.con-body input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--blue); margin-right: 7px; vertical-align: -4px; }
+.con-body input[type=range] { accent-color: var(--blue); width: 100%; margin-top: 8px; }
+.con-body .row { display: flex; gap: 10px; margin-top: 14px; }
+.con-body .row > * { flex: 1; margin-top: 0; }
+.con-body .row label { margin-top: 0; }
 
-.map-btn:hover { background: #f4f4f4; }
-#livecur { background: rgba(255,255,255,.95); font-size: 12px; cursor: default; }
+/* nhóm phụ (checkbox ranh giới) tách bằng vạch mờ */
+.con-body .sub { margin-top: 14px; padding-top: 10px; border-top: 1px dashed #d5dfe9; }
+.con-body .sub label:first-child { margin-top: 0; }
 
-/* ===== KHUNG BẢNG DỮ LIỆU BÊN CẠNH BẢN ĐỒ ===== */
-#datapane { display: none; flex: 1; flex-direction: column; min-height: 0; }
-
-#dhead {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+/* nút hành động */
+.con-body button.b {
+  font-size: 15.5px;
+  font-weight: 700;
+  width: 100%;
   padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
-  background: #eef2f7;
-  color: var(--navy);
-}
-
-#dhead .sp { flex: 1; }
-
-#dhead .tool {
-  background: var(--slate);
-  color: #fff;
   border: 0;
-  border-radius: 5px;
-  padding: 5px 10px;
-  cursor: pointer;
-}
-
-#datapane #tw { flex: 1; background: #fff; }
-
-/* bảng thời gian thực */
-#livebar { display: none; padding: 8px 14px; background: #fff; border-bottom: 1px solid var(--border); }
-#livebar label { margin: 0 0 6px; }
-#livesum { font-size: 13px; color: var(--navy); }
-
-/* ===== HỘP CHỌN LỚP BẢN ĐỒ (thu gọn: bấm mới mở) ===== */
-.lc {
-  background: #fff;
   border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, .3);
-  min-width: 190px;
-  max-width: 250px;
-  overflow: hidden;
-  font-size: 13px;
+  margin-top: 16px;
+  cursor: pointer;
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(26, 115, 232, .35);
 }
+.con-body button.b.alt { background: var(--slate); box-shadow: none; }
+.con-body button.b:disabled { background: #9bb8e8; cursor: wait; }
+.con-body .msg { font-size: 14px; line-height: 1.45; margin-top: 8px; }
+.con-body .hint { font-size: 13.5px; color: #57687a; line-height: 1.45; margin-top: 8px; }
 
-.lc .lc-head,
-.lc .lc-ovhead {
+/* ---------- 4. THỐNG KÊ TOÀN THÀNH PHỐ (nằm trong nhóm, không còn nổi) ---------- */
+#stats { display: none; font-size: 15px; }        /* map.js bật sau khi "Hiển thị bản đồ" */
+#stats .st-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+#stats .st-grid > div, #stats .st-pix {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: #eef3f9;
+  border-radius: 10px;
+  padding: 8px 11px;
+}
+#stats .st-pix { flex-direction: row; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 8px; }
+#stats .st-l { font-size: 12px; font-weight: 700; letter-spacing: .02em; color: #5b6c7e; }
+#stats .st-v { font-size: 20px; font-weight: 800; color: var(--navy); line-height: 1.25; font-variant-numeric: tabular-nums; }
+#stats .st-pix .st-v { font-size: 16px; }
+
+#moran {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #22364d;
+  background: #eaf3ff;
+  border: 1px solid #cfe2fa;
+  border-radius: 10px;
+  padding: 9px 11px;
+}
+#legend { height: 16px; border-radius: 5px; margin-top: 12px; border: 1px solid rgba(0, 0, 0, .15); }
+#lg {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin: 0;
-  padding: 9px 12px;
-  border: 0;
-  background: #fff;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--navy);
-  font: 600 13px "Segoe UI", sans-serif;
-  text-align: left;
-  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+#chips div { font-size: 14px; margin-top: 6px; color: #22303d; line-height: 1.35; }
+#chips span {
+  display: inline-block;
+  width: 18px;
+  height: 14px;
+  margin-right: 8px;
+  border: 1px solid rgba(0, 0, 0, .25);
+  border-radius: 4px;
+  vertical-align: -2px;
 }
 
-.lc .lc-head:hover { background: #f4f7fb; }
-.lc .lc-ovhead { background: #f1f4f8; border-top: 1px solid var(--border); }
-.lc .lc-ovhead:hover { background: #e8eef6; }
-.lc .lc-body { padding: 4px 12px 8px; border-top: 1px solid var(--border); }
-.lc .lc-ov { max-height: 240px; overflow: auto; }
-
-.lc label {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin: 4px 0;
-  font-size: 13px;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.lc .lc-empty { color: #666; font-size: 12px; padding: 4px 0; }
-
-/* ===== THANG MÀU NỔI (giữa, phía dưới bản đồ) ===== */
+/* ---------- 5. THANG MÀU (nằm trong nhóm, giữ cơ chế scaleBtn) ---------- */
 .scale-panel {
-  position: absolute;
-  z-index: 1001;
-  left: 50%;
-  bottom: 28px;
-  transform: translateX(-50%);
-  max-width: calc(100% - 20px);
-  background: rgba(255, 255, 255, .96);
+  background: #fff;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, .3);
   overflow: hidden;
+  box-shadow: 0 1px 3px rgba(11, 42, 74, .06);
+  font-size: 14.5px;
+  flex: none;
 }
-
 .scale-head {
   display: flex;
   justify-content: space-between;
@@ -295,90 +260,180 @@
   gap: 14px;
   width: 100%;
   margin: 0;
-  padding: 7px 14px;
+  padding: 13px 15px;
   border: 0;
-  background: transparent;
+  background: #e9eff6;
   color: var(--navy);
-  font: 600 13px "Segoe UI", sans-serif;
+  font: 700 15.5px/1.2 "Segoe UI", sans-serif;
+  text-align: left;
   cursor: pointer;
 }
-
-.scale-head:hover { background: #eef3fa; }
-#scaleArrow { font-size: 16px; line-height: 1; }
-
+.scale-head:hover { background: #dde7f2; }
+#scaleArrow { font-size: 22px; font-weight: 600; line-height: 1; }
 .scale-body {
   display: none;
-  width: 440px;
-  max-width: 100%;
-  padding: 2px 14px 10px;
-  max-height: calc(100vh - 280px);
-  overflow: auto;
+  width: 100%;
+  padding: 4px 15px 15px;
+  border-top: 1px solid var(--border);
 }
-
 .scale-panel.on .scale-body { display: block; }
 
-.sc-row { margin-top: 8px; text-align: center; }
-.sc-name { font-size: 12px; color: var(--navy); }
-.sc-name span { color: #666; }
-.sc-bar { display: flex; height: 14px; margin-top: 3px; border: 1px solid #0003; }
+.sc-row { margin-top: 12px; text-align: center; }
+.sc-name { font-size: 15px; font-weight: 600; color: var(--navy); }
+.sc-name b { font-size: 15.5px; }
+.sc-name span { color: #5b6c7e; font-weight: 600; font-size: 14px; }
+.sc-bar { display: flex; height: 18px; margin-top: 5px; border: 1px solid rgba(0, 0, 0, .25); border-radius: 4px; overflow: hidden; }
 .sc-bar i { flex: 1; }
-.sc-tick { display: flex; font-size: 10px; color: #444; }
+.sc-tick { display: flex; font-size: 12.5px; font-weight: 600; color: #33475c; margin-top: 2px; font-variant-numeric: tabular-nums; }
 .sc-tick span { flex: 1; text-align: center; }
+.scale-body details { margin-top: 14px; font-size: 14px; }
+.scale-body summary { cursor: pointer; color: var(--navy); font-weight: 700; font-size: 15px; }
+.scale-body table { font-size: 14px; }
+.scale-body th, .scale-body td { padding: 7px 12px; }
 
-.scale-body details { margin-top: 10px; font-size: 12px; }
-.scale-body summary { cursor: pointer; color: var(--navy); font-weight: 600; }
-.scale-body table { font-size: 12px; }
+/* ---------- 6. BẢNG DỮ LIỆU (nhóm cuối drawer) ---------- */
+.dt-row { display: flex; align-items: end; gap: 10px; margin-top: 12px; }
+.dt-row label { flex: 1; margin-top: 0; }
+.dt-row .tool {
+  flex: none;
+  background: var(--slate);
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dt-row .tool:hover { background: #37474f; }
 
-/* ===== TOÀN MÀN HÌNH (Fullscreen API) ===== */
+#livebar { display: none; }
+#livebar label { margin-top: 12px; }
+#livesum { font-size: 14.5px; line-height: 1.55; color: var(--navy); margin-top: 8px; }
+#livesum b { font-variant-numeric: tabular-nums; }
+
+#tw { margin-top: 12px; background: #fff; border: 1px solid var(--border); border-radius: 10px; max-height: 340px; }
+.con-body .tw table { font-size: 15px; }
+.con-body .tw th, .con-body .tw td { padding: 9px 13px; }
+.con-body .tw th { font-size: 14px; background: #dce6f1; color: var(--navy); border-bottom: 2px solid #c2cfdd; }
+.con-body .tw tbody tr { height: 40px; }
+.con-body .tw .empty { font-size: 15px; padding: 18px; line-height: 1.5; }
+#clsTab { border: 0; max-height: none; margin-top: 8px; background: transparent; }
+
+/* ---------- 7. TUỲ CHỌN 3D (nằm trong nhóm) ---------- */
+#p3d label { margin-top: 14px; }
+
+/* ---------- 8. ĐIỀU KHIỂN NỔI CỦA LEAFLET ---------- */
+/* hộp chọn nền + lớp dữ liệu (góc trên phải) */
+.lc {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .30);
+  min-width: 240px;
+  max-width: 320px;
+  overflow: hidden;
+  font-size: 14.5px;
+}
+.lc .lc-head,
+.lc .lc-ovhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 12px 14px;
+  border: 0;
+  background: #fff;
+  color: var(--navy);
+  font: 700 15px/1.2 "Segoe UI", sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+.lc .lc-head:hover { background: #f1f5fa; }
+.lc .lc-ovhead { background: #edf2f8; border-top: 1px solid var(--border); }
+.lc .lc-ovhead:hover { background: #e2ebf5; }
+.lc .lc-body { padding: 6px 14px 10px; border-top: 1px solid var(--border); }
+.lc .lc-ov { max-height: 260px; overflow: auto; }
+.lc label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 2px 0;
+  padding: 6px 0;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: #22303d;
+  cursor: pointer;
+}
+.lc label:hover { color: var(--blue); }
+.lc input[type=radio],
+.lc input[type=checkbox] { width: 17px; height: 17px; flex: none; margin: 0; accent-color: var(--blue); }
+.lc .lc-empty { color: #57687a; font-size: 13.5px; padding: 6px 0; }
+
+/* ô hiện giá trị dưới con trỏ (góc dưới trái) */
+.map-btn {
+  background: rgba(255, 255, 255, .96);
+  border: 1px solid #aebfd0;
+  border-radius: 10px;
+  padding: 9px 13px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #1d2733;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+}
+.map-btn:hover { background: #fff; }
+#livecur { max-width: min(480px, 55vw); line-height: 1.4; font-variant-numeric: tabular-nums; cursor: default; white-space: normal; }
+
+/* popup + tooltip */
+.leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: 0 6px 24px rgba(0, 0, 0, .32); }
+.leaflet-popup-content {
+  margin: 12px 16px;
+  min-width: 220px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #1d2733;
+  font-variant-numeric: tabular-nums;
+}
+.leaflet-popup-content b { font-size: 17px; color: var(--navy); }
+.leaflet-tooltip {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--navy);
+  padding: 6px 11px;
+  border-radius: 8px;
+  border: 1px solid #b9c6d4;
+}
+
+/* nút zoom + attribution */
+.leaflet-bar { border: 0; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0, 0, 0, .30); }
+.leaflet-control-zoom a {
+  width: 42px;
+  height: 42px;
+  line-height: 42px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--navy);
+  background: rgba(255, 255, 255, .96);
+}
+.leaflet-control-zoom a:hover { background: #eaf1f8; }
+.leaflet-control-attribution { font-size: 13px; padding: 3px 8px; background: rgba(255, 255, 255, .85); }
+
+/* MapLibre 3D */
+.maplibregl-popup-content { font: 15px/1.6 "Segoe UI", sans-serif; padding: 12px 15px; border-radius: 10px; }
+.maplibregl-popup-content b { font-size: 16px; color: var(--navy); }
+
+/* ---------- 9. TOÀN MÀN HÌNH ---------- */
 #v-map:fullscreen { height: 100vh; background: #fff; }
 #v-map:-webkit-full-screen { height: 100vh; background: #fff; }
 
-/* ===== BẢN ĐỒ 3D (MapLibre) + nút chuyển 2D/3D ===== */
-#map3d { flex: 1; min-height: 150px; display: none; }
-#right.is3d #map { display: none; }
-#right.is3d #map3d { display: block; }
+/* ---------- 10. BÀN PHÍM + MÀN HÌNH HẸP ---------- */
+#v-map :focus-visible { outline: 3px solid #4fa3ff; outline-offset: 2px; }
 
-.vsw {
-  position: absolute;
-  z-index: 1001;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  background: rgba(255, 255, 255, .96);
-  border-radius: 999px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, .3);
-  overflow: hidden;
+@media (max-width: 760px) {
+  :root { --conw: 92vw; }
+  #console { left: 8px; top: 8px; bottom: 8px; }
+  #conHandle { left: 8px; top: 8px; }
+  #livecur { max-width: 70vw; }
 }
-
-.vsw button {
-  margin: 0;
-  padding: 6px 18px;
-  border: 0;
-  background: transparent;
-  color: var(--navy);
-  font: 600 13px "Segoe UI", sans-serif;
-  cursor: pointer;
-}
-
-.vsw button.on { background: var(--blue); color: #fff; }
-
-.p3d {
-  display: none;
-  position: absolute;
-  z-index: 1001;
-  top: 10px;
-  right: 10px;
-  width: 230px;
-  background: rgba(255, 255, 255, .96);
-  border-radius: 10px;
-  padding: 10px 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, .3);
-  font-size: 13px;
-}
-
-.p3d label { margin-top: 6px; font-size: 12px; }
-.p3d select,
-.p3d input[type=range] { width: 100%; padding: 3px; margin-top: 2px; }
-#right.is3d .p3d { display: block; }
-.maplibregl-popup-content { font: 13px "Segoe UI", sans-serif; }

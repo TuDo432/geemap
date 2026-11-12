@@ -8,7 +8,7 @@ async function render(){
  const w=$('tw');let cols,rows,click=null,hl=null,empty='Chưa có dữ liệu.';
  $('livebar').style.display=tab==='live'?'block':'none';
  try{
-  if(tab==='year'){rows=yearRows;cols=YC;empty='Chưa có dữ liệu. Mở ⚙️ Điều khiển và bấm "Quét & lưu".';hl=r=>String(r.Nam)===$('yr').value;click=r=>{$('yr').value=r.Nam;render();};}
+  if(tab==='year'){rows=yearRows;cols=YC;empty='Chưa có dữ liệu. Mở Bảng điều khiển › Quét chuỗi thời gian và bấm "Quét & lưu".';hl=r=>String(r.Nam)===$('yr').value;click=r=>{$('yr').value=r.Nam;render();};}
   else if(tab==='grid'){rows=gridRows;empty='Bấm "Hiển thị bản đồ" để xem thống kê từng ô lưới.';
    cols=[T('Name','Ô lưới'),N('mean','Trung bình'),N('min','Min'),N('max','Max'),N('stdDev','Độ lệch chuẩn'),N('count','Số pixel',0),N('gi','Gi* (z)',2),T('nhom','Nhóm điểm nóng/lạnh')];
    click=r=>{const l=gridLayers[r.Code];if(l){if(gridGroup&&!map.hasLayer(gridGroup))map.addLayer(gridGroup);map.fitBounds(l.getBounds());l.openPopup();}};}

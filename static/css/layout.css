@@ -100,7 +100,7 @@ main { flex: 1; min-height: 0; position: relative; }
 
 .view { display: none; height: 100%; overflow: auto; }
 .view.on { display: block; }
-#v-map.on { display: flex; }
+#v-map.on { display: block; }
 
 /* ===== TRANG CHỦ / TRANG CÓ NỘI DUNG DẠNG TÀI LIỆU ===== */
 .doc {

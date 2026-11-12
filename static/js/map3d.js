@@ -13,7 +13,7 @@ function init3D(){
     sat:{type:'raster',tiles:[ESRI_IMG],tileSize:256,maxzoom:18,attribution:'Tiles © Esri'},
     dem:{type:'raster-dem',tiles:[DEM_URL],encoding:'terrarium',tileSize:256,maxzoom:14,attribution:'Terrain: Mapzen/AWS'}},
    layers:[{id:'sat',type:'raster',source:'sat'}]}});
- m3.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'top-left');   // trên trái: không bị bảng "Toàn thành phố" che
+  m3.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'topright');   // phải trên: bảng điều khiển hợp nhất đã che góc trái
  m3.on('load',()=>{ready3=true;terrain3D();sync3D();});
  /* bấm cột nổi để xem số liệu (kiểm tra lớp 'ext' đã có chưa để không báo lỗi) */
  m3.on('click',e=>{
