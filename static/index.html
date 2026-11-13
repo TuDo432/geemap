@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="/static/css/base.css?v=2">
-<link rel="stylesheet" href="/static/css/cover.css?v=1">
+<link rel="stylesheet" href="/static/css/cover.css?v=2">
 <link rel="stylesheet" href="/static/css/layout.css?v=2">
 <link rel="stylesheet" href="/static/css/map.css?v=10">
 <link rel="stylesheet" href="/static/css/tables.css?v=1">
@@ -15,18 +15,31 @@
 <link rel="stylesheet" href="/static/css/auto.css?v=1">
 </head><body>
 
-<!-- ===== TRANG BÌA ===== -->
+<!-- ===== TRANG BÌA (bản tối ưu: brand lockup → title → phụ đề → fact chips → intro → tính năng → CTA) ===== -->
 <div id="cover">
- <img class="logo" src="/static/img/Logo.png" alt="Huy hiệu trường" onerror="this.style.display='none'"><!-- đặt ảnh huy hiệu tại static/img/Logo.png -->
- <h1>THEO DÕI NHIỆT ĐỘ, THẢM XANH VÀ KHÔ HẠN<br>TP. HỒ CHÍ MINH<br>BẰNG ẢNH VỆ TINH TRÊN <span class="hl">GOOGLE EARTH ENGINE</span></h1>
- <p class="intro">Hệ thống tự động lấy ảnh vệ tinh Landsat 8/9, xử lý và hiển thị kết quả lên bản đồ,<br>giúp bạn nhìn thấy khu vực nào đang nóng lên, thiếu cây xanh hoặc có nguy cơ khô hạn.</p>
+ <div class="cv-brand">
+  <span class="cv-logo">
+   <b class="fb" aria-hidden="true">🌍</b><!-- hiện khi thiếu ảnh Logo.png -->
+   <img class="logo" src="/static/img/Logo.png" alt="Logo đơn vị thực hiện" onerror="this.remove()">
+  </span>
+  <span class="cv-kicker">NỀN TẢNG WEBGIS · GOOGLE EARTH ENGINE</span>
+ </div>
+ <h1>Theo dõi Nhiệt độ, Thảm xanh &amp; Khô hạn<br><span class="hl">TP. Hồ Chí Minh</span></h1>
+ <p class="cv-sub">Giám sát đa năm bằng ảnh vệ tinh Landsat 8/9 — xử lý tự động trên <b>Google Earth Engine</b>, hiển thị đến từng phường/xã.</p>
+ <div class="cv-meta" role="list">
+  <span role="listitem">🛰️ Landsat 8/9</span>
+  <span role="listitem">🗓️ Mùa khô T12–T4</span>
+  <span role="listitem">📅 2016 – 2026</span>
+  <span role="listitem">📍 Đến phường/xã</span>
+ </div>
+ <p class="intro">Hệ thống tự động lấy ảnh vệ tinh, xử lý và hiển thị kết quả lên bản đồ,<br>giúp bạn nhìn thấy khu vực nào đang nóng lên, thiếu cây xanh hoặc có nguy cơ khô hạn.</p>
  <div class="feats">
   <div><span>🛰️</span><b>Tự động lấy ảnh</b>Cập nhật khi có ảnh vệ tinh mới, không cần xử lý thủ công</div>
   <div><span>🗺️</span><b>Bản đồ trực quan</b>Xem nhiệt độ, độ xanh, khô hạn đến từng quận/huyện</div>
   <div><span>📈</span><b>Theo dõi theo thời gian</b>So sánh các năm 2016–2026 và dự báo xu hướng</div>
   <div><span>📥</span><b>Thống kê &amp; xuất dữ liệu</b>Biểu đồ, bảng số liệu, tải về GeoTIFF/CSV</div>
  </div>
- <button class="btn-enter" onclick="enter()">Vào hệ thống WebGIS →</button>
+ <button class="btn-enter" onclick="enter()">Vào hệ thống WebGIS <span class="ar" aria-hidden="true">→</span></button>
 </div>
 
 <!-- ===== KHUNG ỨNG DỤNG ===== -->

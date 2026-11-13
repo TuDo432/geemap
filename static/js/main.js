@@ -24,7 +24,7 @@ if(window.Chart){
 }
 
 /* điền danh sách năm vào các ô chọn */
-for(const id of ['yr','ey','sy','cy']){for(let y=Y;y>=2016;y--)$(id).add(new Option(y,y));$(id).value=Math.min(2025,Y);}
+for(const id of ['yr','ey','sy','cy', 'vy']){for(let y=Y;y>=2016;y--)$(id).add(new Option(y,y));$(id).value=Math.min(2025,Y);}
 $('y2').value=Y;
 (()=>{const hy=$('hy');hy.add(new Option('Tất cả',''));for(let y=Y;y>=2016;y--)hy.add(new Option(y,y));})();
 

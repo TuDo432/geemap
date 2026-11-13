@@ -9,7 +9,8 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from .db import engine, fixkeys
 from . import gee_service as g
-from . import spatial                                   # [MỚI] Moran's I, Getis-Ord Gi*
+from . import spatial            
+from . import validation as val                       # [MỚI] Moran's I, Getis-Ord Gi*
 from .indices import INDICES, VIS
 
 log = logging.getLogger("uvicorn.error")
@@ -374,6 +375,14 @@ def charts_hist(index: str, year: int = YEAR, cloud: int = CLOUD):
 @app.get("/api/stats/regions")
 def stats_regions(year: int = YEAR, cloud: int = CLOUD):
     return _gee_call(g.region_stats, year, cloud)
+
+@app.get("/api/validate")
+def validate(year: int = YEAR, cloud: int = CLOUD):
+    return _gee_call(val.validate_year, year, cloud)
+
+@app.get("/api/validate/city")
+def validate_city(year: int = YEAR, cloud: int = CLOUD):
+    return _gee_call(val.city_means, year, cloud)
 
 @app.get("/api/cartomap")
 def cartomap_api(request: Request, index: str, year: int = YEAR, cloud: int = CLOUD, classify: bool = True,
