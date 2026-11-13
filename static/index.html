@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="/static/css/stats.css?v=2">
 <link rel="stylesheet" href="/static/css/series.css?v=1">
 <link rel="stylesheet" href="/static/css/tools.css?v=2">
-<link rel="stylesheet" href="/static/css/auto.css?v=1">
+<link rel="stylesheet" href="/static/css/auto.css?v=2">
 </head><body>
 
 <!-- ===== TRANG BÌA (bản tối ưu: brand lockup → title → phụ đề → fact chips → intro → tính năng → CTA) ===== -->
@@ -209,37 +209,92 @@
      <div class="tx-body"><div id="stw" class="tw"></div></div></div>
     <div class="tx-lead">Mùa khô được tổng hợp từ T12 năm trước đến T4 nên giá trị theo mùa chính là giá trị của năm. Đường nét đứt là dự báo cơ sở (tab Công cụ › Kiểm chứng &amp; dự báo).</div></div></div></section>
 
- <!-- ===== 4. TỰ ĐỘNG HÓA ===== -->
- <section id="v-auto" class="view"><div class="pg">
- <div id="autoState" class="auto-state">Đang tải...</div>
- <div class="auto-ctl">
-  <label class="chk"><input type="checkbox" id="auOn"> Bật tự động quét khi có ảnh Landsat mới</label>
-  <div class="row row-chart"><label>Kiểm tra mỗi (giờ)<input type="number" id="auH" value="12" min="1" max="168"></label>
-   <label>Mây tối đa mùa khô (%)<input type="number" id="auC" value="30" min="0" max="100"></label>
-   <label>Cửa sổ "hiện tại" (ngày)<input type="number" id="auW" value="60" min="15" max="180"></label></div>
-  <div class="row row-chart mt-8"><button class="b btn-flush" onclick="auSave()">Lưu cấu hình</button>
-   <button class="b alt btn-flush" onclick="auRun(false)">Kiểm tra ngay</button>
-   <button class="b alt btn-flush" onclick="auRun(true)">Ép quét lại năm hiện tại</button></div>
-  <div class="msg" id="auMsg"></div></div>
- <h2 class="au-h">Thông số hiện tại (chụp nhanh gần nhất)</h2><div id="auNow"></div>
-  <h2 class="au-h">Ảnh thể hiện (ghép ảnh gần nhất)</h2>
- <div id="auImgs" class="cards"></div>
- <div class="seg mt-12"><button onclick="auVec('grid')">⬇ GeoJSON ô lưới (thông số hiện tại)</button>
-  <button onclick="auVec('outline')">⬇ GeoJSON ranh giới</button></div>
+  <!-- ===== 4. TỰ ĐỘNG HÓA (bản tối ưu: banner trạng thái + các thẻ chức năng) ===== -->
+  <section id="v-auto" class="view"><div class="pg pg-stats">
+   <div class="tx-hero">
+    <div class="tx-id">
+     <h2>Tự động hóa</h2>
+     <div class="tx-sub">Tự kiểm tra ảnh Landsat mới → quét → chụp nhanh → đánh giá, theo chu kỳ cấu hình</div>
+    </div>
+   </div>
+   <div class="tx-out">
 
- <h2 class="au-h">So sánh số liệu theo chuỗi thời gian</h2>
- <div class="seg"><button id="aY" class="on" onclick="auMode('year')">Theo mùa khô (năm)</button><button id="aM" onclick="auMode('month')">Theo tháng</button><button id="aC" onclick="auMode('combo')">Kết hợp (cột NDVI + đường LST, TVDI)</button></div>
- <div class="chart-box"><canvas id="auChart" height="110"></canvas></div><div id="auSer" class="tw mt-12"></div>
- <div class="hint">Điểm cuối "Hiện tại" là ghép ảnh gần nhất, không cùng mùa khô nên Δ so với kỳ trước chỉ để tham khảo.</div>
+   <div id="autoState" class="auto-state" role="status" aria-live="polite">Đang tải...</div>
 
- <h2 class="au-h">Phân tích &amp; đánh giá tự động</h2>
- <div class="row row-stat"><label>Năm xem xét<select id="auAnY" onchange="drawAna(AU_ANA)"></select></label>
-  <button class="b alt btn-flush" onclick="csv('danh_gia_tu_dong.csv',ANAC,anaRows)">Tải CSV</button></div>
- <div id="auAnSum"></div><div id="auAnW" class="tw mt-8"></div>
- <h2 class="au-h">Nhật ký &amp; phân tích tự động</h2><div id="auLog" class="tw"></div>
- <h2 class="au-h">Lịch sử chụp nhanh</h2><div id="auSnap" class="tw"></div>
- <div class="msg msg-muted">Thông số hiện tại là ghép ảnh vài tuần gần nhất (mây scene &lt; 60%, pixel mây vẫn bị che bằng QA). TVDI ngoài mùa khô chỉ mang tính tham khảo. Số liệu năm (mùa khô T12–T4) chỉ đổi khi có ảnh mới trong khoảng đó. Phân tích đầy đủ 10 tình huống ở Công cụ › Phân tích &amp; đánh giá.</div>
-</div></section>
+   <div class="tx-block">
+    <h4 class="tx-t">⚙️ Cấu hình tự quét</h4>
+    <div class="tx-body">
+     <label class="auto-switch">
+      <input type="checkbox" id="auOn"><span class="sw-ui" aria-hidden="true"></span>
+      <span>Bật tự động quét khi có ảnh Landsat mới</span>
+     </label>
+     <div class="au-fields">
+      <label>Kiểm tra mỗi (giờ)<input type="number" id="auH" value="12" min="1" max="168"></label>
+      <label>Mây tối đa mùa khô (%)<input type="number" id="auC" value="30" min="0" max="100"></label>
+      <label>Cửa sổ "hiện tại" (ngày)<input type="number" id="auW" value="60" min="15" max="180"></label>
+     </div>
+     <div class="au-actions">
+      <button class="b" onclick="auSave()">Lưu cấu hình</button>
+      <button class="b alt" onclick="auRun(false)">Kiểm tra ngay</button>
+      <button class="b alt" onclick="auRun(true)">Ép quét lại năm hiện tại</button>
+     </div>
+     <div class="msg" id="auMsg"></div>
+    </div>
+   </div>
+
+   <div class="tx-block">
+    <h4 class="tx-t">📌 Thông số hiện tại (chụp nhanh gần nhất)</h4>
+    <div class="tx-body"><div id="auNow"></div></div>
+   </div>
+
+   <div class="tx-block">
+    <h4 class="tx-t">🖼️ Ảnh thể hiện (ghép ảnh gần nhất)</h4>
+    <div class="tx-body">
+     <div id="auImgs" class="cards"></div>
+     <div class="au-vecrow">
+      <button class="tool" onclick="auVec('grid')">⬇ GeoJSON ô lưới (thông số hiện tại)</button>
+      <button class="tool" onclick="auVec('outline')">⬇ GeoJSON ranh giới</button>
+     </div>
+    </div>
+   </div>
+
+   <div class="tx-block">
+    <h4 class="tx-t">📈 So sánh số liệu theo chuỗi thời gian</h4>
+    <div class="tx-body">
+     <div class="seg wrap seg-stats au-mode">
+      <button id="aY" class="on" onclick="auMode('year')">Theo mùa khô (năm)</button>
+      <button id="aM" onclick="auMode('month')">Theo tháng</button>
+      <button id="aC" onclick="auMode('combo')">Kết hợp: cột NDVI + đường LST, TVDI</button>
+     </div>
+     <div class="au-charts"><canvas id="auChart"></canvas></div>
+     <div id="auSer" class="tw mt-12"></div>
+     <div class="hint">Điểm cuối "Hiện tại" là ghép ảnh gần nhất, không cùng mùa khô nên Δ so với kỳ trước chỉ để tham khảo.</div>
+    </div>
+   </div>
+
+   <div class="tx-block">
+    <h4 class="tx-t">🧮 Phân tích &amp; đánh giá tự động</h4>
+    <div class="tx-body">
+     <div class="au-anarow">
+      <label>Năm xem xét<select id="auAnY" onchange="drawAna(AU_ANA)"></select></label>
+      <button class="tool" onclick="csv('danh_gia_tu_dong.csv',ANAC,anaRows)">⬇ Tải CSV</button>
+     </div>
+     <div id="auAnSum"></div><div id="auAnW"></div>
+    </div>
+   </div>
+
+   <div class="tx-block">
+    <h4 class="tx-t">📜 Nhật ký &amp; phân tích tự động</h4>
+    <div class="tx-body"><div id="auLog" class="tw"></div></div>
+   </div>
+
+   <div class="tx-block">
+    <h4 class="tx-t">🕘 Lịch sử chụp nhanh</h4>
+    <div class="tx-body"><div id="auSnap" class="tw"></div></div>
+   </div>
+
+   <div class="tx-lead">Thông số hiện tại là ghép ảnh vài tuần gần nhất (mây scene &lt; 60%, pixel mây vẫn bị che bằng QA). TVDI ngoài mùa khô chỉ mang tính tham khảo. Số liệu năm (mùa khô T12–T4) chỉ đổi khi có ảnh mới trong khoảng đó. Phân tích đầy đủ 10 tình huống ở Công cụ › Phân tích &amp; đánh giá.</div>
+  </div></div></section>
 
   <!-- ===== 5. CÔNG CỤ (biểu đồ so sánh, kiểm chứng & dự báo, dữ liệu & xuất file, lịch sử & ảnh, phân tích) ===== -->
   <section id="v-tools" class="view">
@@ -311,6 +366,6 @@
 <script src="/static/js/charts.js?v=2"></script>
 <script src="/static/js/export.js?v=1"></script>
 <script src="/static/js/history.js?v=2"></script>
-<script src="/static/js/auto.js?v=1"></script>
+<script src="/static/js/auto.js?v=2"></script>
 <script src="/static/js/main.js?v=6"></script>
 </body></html>

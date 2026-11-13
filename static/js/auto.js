@@ -56,7 +56,14 @@ function auSeries(){   // cùng quy tắc mục Chuỗi thời gian (năm / thá
  const ds=[['LST (°C)','lst','#d32f2f','y'],['NDVI','ndvi','#2e7d32','y1'],['TVDI','tvdi','#f9a825','y1']].map(([l,k,c,ax])=>({label:l,data:R.map(r=>r[k]),borderColor:c,yAxisID:ax,tension:.2,
   pointRadius:R.map((_,i)=>s&&i===R.length-1?7:3)}));
  if(auM==='combo'){ds[1].type='bar';ds[1].backgroundColor='#81c784aa';}
- auCh=new Chart($('auChart'),{type:'line',data:{labels:R.map(r=>r.lb),datasets:ds},options:{scales:{y:{position:'left',title:{display:true,text:'LST (°C)'}},y1:{position:'right',min:0,max:1,grid:{drawOnChartArea:false}}}}});
+  const ax=(t)=>({title:{display:true,text:t,font:{size:14.5,weight:'700'},color:'#0b2a4a'},ticks:{font:{size:14},color:'#33475c'},grid:{color:'#e6ecf3'}});
+  auCh=new Chart($('auChart'),{type:'line',data:{labels:R.map(r=>r.lb),datasets:ds},options:{responsive:true,maintainAspectRatio:false,
+   interaction:{mode:'index',intersect:false},
+   plugins:{legend:{position:'top',align:'start',labels:{usePointStyle:true,boxWidth:9,padding:18,font:{size:14.5,weight:'600'},color:'#22303d'}},
+    tooltip:{backgroundColor:'#0b2a4a',padding:12,cornerRadius:10,usePointStyle:true,titleFont:{size:15,weight:'700'},bodyFont:{size:14}}},
+   scales:{x:{grid:{display:false},ticks:{font:{size:14},color:'#33475c',maxRotation:0,autoSkip:true}},
+    y:{position:'left',...ax('LST (°C)')},
+    y1:{position:'right',min:0,max:1,grid:{drawOnChartArea:false},...ax('NDVI · TVDI')}}}});
  const dd=(i,k)=>i&&R[i][k]!=null&&R[i-1][k]!=null?R[i][k]-R[i-1][k]:null;
  const rows=R.map((r,i)=>({...r,dL:dd(i,'lst'),dN:dd(i,'ndvi'),dT:dd(i,'tvdi')}));
  sortKey=null;
