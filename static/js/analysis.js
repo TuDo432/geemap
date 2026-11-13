@@ -73,6 +73,18 @@ function drawAna(ID={y:'anY',s:'ansum',w:'anw'}){
    sev===2?'Nhiệt độ hiện tại cao bất thường so với chuỗi mùa khô.':sev===1?'Cao hơn đáng kể so với trung bình chuỗi.':'Trong phạm vi bình thường của chuỗi.',
    'Chỉ để tham khảo: ảnh hiện tại không cùng mùa khô nên so sánh có độ lệch theo mùa.');}
 
+ // 12. Xếp hạng phường/xã. Chỉ ở tab Phân tích và chỉ DÙNG dữ liệu đã tải:
+ //     drawAna() còn chạy lặp 15 giây/lần ở mục Tự động hóa nên tuyệt đối không gọi API trong này.
+ if(ID.y==='anY'&&lastRY){
+  if(geo){
+   const dg=curIdx==='LST'?2:3,
+    rk=geo.districts.features.map(ft=>({n:ft.properties.name,v:((ft.properties.stats||{})[curIdx]||{}).mean}))
+     .filter(r=>r.v!=null).sort((p,q)=>curIdx==='NDVI'?p.v-q.v:q.v-p.v).slice(0,5);
+   add(`12. Xếp hạng phường/xã (${curIdx} ${lastRY})`,-1,rk.map(r=>`${r.n} (${f(r.v,dg)})`).join('; '),
+    curIdx==='NDVI'?'5 đơn vị có thực vật thấp nhất.':'5 đơn vị có giá trị cao nhất.','Mở Bảng điều khiển › Bảng dữ liệu › Phường/xã để xem đủ 167 đơn vị.');
+  }else add('12. Xếp hạng phường/xã',-1,regState.status==='loading'?'Đang tải thống kê phường/xã...':'Chưa có dữ liệu','Dữ liệu cấp phường/xã được tải khi mở tab này.','–');
+ }
+
  anaRows=out.map(r=>({...r,muc:SEV[r.sev][0]}));
  const wmax=Math.max(...out.map(r=>r.sev)),c2=out.filter(r=>r.sev===2).length,c1=out.filter(r=>r.sev===1).length;
  $(ID.s).innerHTML=`<div class="ana-sum" style="border-left-color:${SEV[wmax][1]}"><b>Kết luận năm ${Yr}:</b> ${c2} cảnh báo, ${c1} lưu ý trên ${out.length} tình huống. `+

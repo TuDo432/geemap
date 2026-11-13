@@ -21,5 +21,5 @@ function setTool(t){toolTab=t;
  document.querySelectorAll('#toolseg button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
  document.querySelectorAll('.tool-pane').forEach(p=>p.classList.toggle('on',p.id==='tp-'+t));
  if(t==='valid')valid();
- if(t==='ana')drawAna();
+ if(t==='ana'){loadRegions();drawAna();}   // HÀNH ĐỘNG 2: tải phường/xã theo nhu cầu; có cache thì lấy ngay
  if(t==='hist')loadRuns();}

@@ -2,8 +2,9 @@
 const $=id=>document.getElementById(id), Y=new Date().getFullYear();
 const hex2rgb=h=>{const n=parseInt(h.slice(1),16);return [n>>16&255,n>>8&255,n&255];};
 function colorAt(t,pal){t=Math.max(0,Math.min(1,t));const k=t*(pal.length-1),i=Math.min(Math.floor(k),pal.length-2),f=k-i,a=hex2rgb(pal[i]),b=hex2rgb(pal[i+1]);return 'rgb('+a.map((v,j)=>Math.round(v+(b[j]-v)*f)).join(',')+')';}
-const J=async u=>{
-  const r=await fetch(u), t=await r.text();
+/* J(url, opt): opt = {signal} để hủy request bằng AbortController */
+const J=async(u,opt)=>{
+  const r=await fetch(u,opt), t=await r.text();
   let d=null; try{d=JSON.parse(t)}catch{}
   if(!r.ok) throw new Error((d&&d.detail)||`HTTP ${r.status}: ${t.slice(0,200)}`);
   return d;

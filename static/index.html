@@ -4,7 +4,7 @@
 <link rel="icon" type="image/png" href="/static/img/Logo.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
-<link rel="stylesheet" href="/static/css/base.css?v=2">
+<link rel="stylesheet" href="/static/css/base.css?v=3">
 <link rel="stylesheet" href="/static/css/cover.css?v=2">
 <link rel="stylesheet" href="/static/css/layout.css?v=2">
 <link rel="stylesheet" href="/static/css/map.css?v=10">
@@ -80,8 +80,9 @@
        <button class="b" id="btn" onclick="run()">Hiển thị bản đồ</button>
        <div class="msg" id="msg"></div>
        <div class="sub">
-        <label><input type="checkbox" id="dist" checked onchange="buildDistricts()"> Hiện ranh giới phường/xã</label>
-        <label><input type="checkbox" id="fill" onchange="buildDistricts()"> Tô màu phường/xã theo trung bình chỉ số</label>
+        <!-- LAZY LOADING: mặc định KHÔNG tick; bật lớp mới tải 167 phường/xã -->
+        <label><input type="checkbox" id="dist" onchange="onWardToggle('dist')"> Hiện ranh giới phường/xã</label>
+        <label><input type="checkbox" id="fill" onchange="onWardToggle('fill')"> Tô màu phường/xã theo trung bình chỉ số</label>
        </div>
        <div class="msg" id="rgmsg"></div>
       </div>
@@ -120,7 +121,7 @@
       <summary>🧊 Hiển thị 3D</summary>
       <div class="fold-body"><div id="p3d">
        <label>Cột nổi theo
-        <select id="u3" onchange="sync3D()">
+        <select id="u3" onchange="onU3()">
          <option value="grid">Ô lưới</option>
          <option value="ward">Phường/xã</option>
          <option value="none">Không (chỉ ảnh + địa hình)</option>
@@ -156,7 +157,7 @@
         </select></label>
         <button class="tool" onclick="dlcsv()">⬇ Tải CSV</button>
        </div>
-       <div id="livebar"><label>Đơn vị thống kê<select id="liveU" onchange="render()"><option value="cell">Ô lưới</option><option value="dist">Phường/xã</option></select></label><div id="livesum"></div></div>
+       <div id="livebar"><label>Đơn vị thống kê<select id="liveU" onchange="onLiveU()"><option value="cell">Ô lưới</option><option value="dist">Phường/xã</option></select></label><div id="livesum"></div></div>
        <div id="tw" class="tw"></div>
       </div>
      </details>
@@ -367,14 +368,14 @@
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <!-- thứ tự nạp quan trọng: core đầu tiên, main cuối cùng; map3d.js sau map.js -->
-<script src="/static/js/core.js?v=1"></script>
-<script src="/static/js/nav.js?v=2"></script>
-<script src="/static/js/map.js?v=4"></script>
+<script src="/static/js/core.js?v=2"></script>
+<script src="/static/js/nav.js?v=3"></script>
+<script src="/static/js/map.js?v=5"></script>
 <script src="/static/js/map3d.js?v=2"></script>
-<script src="/static/js/tables.js?v=2"></script>
+<script src="/static/js/tables.js?v=3"></script>
 <script src="/static/js/scan.js?v=1"></script>
 <script src="/static/js/series.js?v=2"></script>
-<script src="/static/js/analysis.js?v=1"></script>
+<script src="/static/js/analysis.js?v=2"></script>
 <script src="/static/js/stats.js?v=2"></script>
 <script src="/static/js/charts.js?v=2"></script>
 <script src="/static/js/export.js?v=1"></script>

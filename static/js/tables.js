@@ -12,7 +12,11 @@ async function render(){
   else if(tab==='grid'){rows=gridRows;empty='Bấm "Hiển thị bản đồ" để xem thống kê từng ô lưới.';
    cols=[T('Name','Ô lưới'),N('mean','Trung bình'),N('min','Min'),N('max','Max'),N('stdDev','Độ lệch chuẩn'),N('count','Số pixel',0),N('gi','Gi* (z)',2),T('nhom','Nhóm điểm nóng/lạnh')];
    click=r=>{const l=gridLayers[r.Code];if(l){if(gridGroup&&!map.hasLayer(gridGroup))map.addLayer(gridGroup);map.fitBounds(l.getBounds());l.openPopup();}};}
-  else if(tab==='dist'){rows=distRows();empty='Bấm "Hiển thị bản đồ" để tải thống kê phường/xã.';
+  else if(tab==='dist'){rows=distRows();
+   // phường/xã tải theo nhu cầu: thông báo rỗng tùy trạng thái (chưa bản đồ / đang tải / chưa tải)
+   empty=!lastOutline?'Bấm “Hiển thị bản đồ” trước, rồi chọn lại bảng này để tải thống kê phường/xã.'
+    :regState.status==='loading'?'<span class="spin"></span>Đang tải thống kê 167 phường/xã...'
+    :'Chưa tải dữ liệu phường/xã. <a href="#" onclick="loadRegions();return false">Tải ngay</a>';
    const tx=(k,l)=>({k,l,f:v=>v==null?'–':String(v)});
    cols=[tx('name','Phường/xã'),N('lst','LST TB (°C)',2),N('ndvi','NDVI TB'),N('tvdi','TVDI TB'),N('n','Số pixel (chỉ số đang xem)',0)];
    click=r=>{const l=distLayers[r.key];if(l){map.fitBounds(l.getBounds());l.openPopup();}};}

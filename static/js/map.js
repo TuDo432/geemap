@@ -2,7 +2,7 @@
 const VN=[[6,102],[24,118]];              // phạm vi Việt Nam (gồm biển đảo): bản đồ không kéo ra ngoài vùng này
 const HCM=[[10.3,106.2],[11.6,107.6]];    // vùng TP.HCM: mặc định phóng vào khi mở bản đồ
 let map,ctrl,dyn=[],lastR=null,lastRY=null,lastOutline=null;
-let geo=null,regTok=0,curIdx='LST',curVis=null;      // ranh giới + thống kê phường/xã
+let geo=null,curIdx='LST',curVis=null,lastC=null;    // geo = dữ liệu phường/xã của bản đồ ĐANG HIỂN THỊ (null = chưa tải)
 let gridGroup=null,distLayer=null,maskLayer=null,outlineLayer=null,distLayers={};
 let geeLayer=null;                                   // lớp màu chỉ số từ GEE (để chỉnh độ trong suốt)
 const geomRings=g=>(g.type==='Polygon'?[g.coordinates]:g.coordinates).map(x=>x[0].map(c=>[c[1],c[0]]));
@@ -111,6 +111,7 @@ function toggleConsole(force){
 function showSide(p){tab=p;sortKey=null;
  if(!consoleOpen)toggleConsole(true);
  $('f-data').open=true;const s=$('dtab');if(s)s.value=p;
+ if(p==='dist')loadRegions();                               // HÀNH ĐỘNG 2: bảng xếp hạng 167 phường/xã
  render();
  try{$('f-data').scrollIntoView({block:'nearest'});}catch(e){}
 }
@@ -144,32 +145,121 @@ function buildDistricts(){
   l.on({mouseover:e=>e.target.setStyle({weight:2.5,color:'#d32f2f'}),mouseout:e=>distLayer.resetStyle(e.target)});}});
  addLayer(distLayer,'Phường/xã');
 }
+
+/* ======================= LAZY LOADING PHƯỜNG/XÃ =======================
+   - run() KHÔNG tải phường/xã.
+   - Chỉ tải khi người dùng chủ động: (1) bật lớp "phường/xã", (2) mở tab Phân tích / bảng xếp hạng phường/xã
+     (ngoài ra: đổi "Đơn vị thống kê" sang phường/xã, hoặc chọn cột nổi 3D theo phường/xã – các nơi này cũng cần dữ liệu).
+   - Cache: khóa "năm|mây" (dữ liệu trả về đã gồm cả 3 chỉ số nên không phụ thuộc chỉ số đang xem).
+   - Mỗi thời điểm chỉ có 1 request: cùng khóa thì dùng chung, khác khóa thì hủy request cũ. */
+const regCache=new Map();                                   // "năm|mây" -> {provinces, districts}
+const regState={key:null,status:'idle',ctl:null,promise:null};   // status: idle | loading | error
+const curKey=()=>lastRY&&lastC!=null?`${lastRY}|${lastC}`:null;  // khóa của bản đồ đang hiển thị (không phải giá trị ô chọn)
+
+function setRegMsg(html,cls=''){const m=$('rgmsg');if(m){m.className='msg '+cls;m.innerHTML=html;}}   // chỉ truyền chuỗi tĩnh hoặc đã esc()
+
+/* gọi sau khi dữ liệu phường/xã sẵn sàng (từ cache hoặc từ API) */
 function applyDistricts(){
  if(!lastOutline||!geo)return;
  buildDistricts();
- sync3D();      // cập nhật cột nổi 3D theo phường/xã
-   const m=$('rgmsg');m.className='msg';m.textContent='Bấm vào phường/xã trên bản đồ để xem số liệu, hoặc chọn bảng Phường/xã trong Bảng điều khiển › Bảng dữ liệu.';
- if(tab==='dist')render();
+ sync3D();                                                  // cột nổi 3D theo phường/xã
+ setRegMsg($('dist').checked?'Bấm vào phường/xã trên bản đồ để xem số liệu.':'Đã tải xong số liệu phường/xã.');
+ if(tab==='dist'||tab==='live')render();
+ if($('v-tools').classList.contains('on')&&toolTab==='ana')drawAna();   // tab Phân tích đang mở -> cập nhật mục xếp hạng
 }
-async function loadRegions(year,cloud){      // thống kê từng phường/xã (GEE; lần đầu mỗi năm có thể chậm)
- const tok=++regTok,m=$('rgmsg');m.className='msg';m.textContent='Đang tải thống kê phường/xã từ GEE (lần đầu có thể mất 1–2 phút)...';
- try{const d=await J(`/api/stats/regions?year=${year}&cloud=${cloud}`);if(tok!==regTok)return;
-  geo=d;applyDistricts();}
- catch(e){if(tok!==regTok)return;m.className='msg err';m.textContent='Không tải được phường/xã: '+e.message;}
+
+/* Hàm DUY NHẤT tải phường/xã. Gọi nhiều lần vẫn an toàn (có cache + dùng chung request đang chạy). */
+async function loadRegions(){
+ const key=curKey();
+ if(!key||!lastOutline)return null;                         // chưa bấm "Hiển thị bản đồ"
+ const hit=regCache.get(key);
+ if(hit){                                                   // 1) CACHE: không gọi API
+  if(geo!==hit){geo=hit;applyDistricts();}
+  return hit;
+ }
+ if(regState.status==='loading'&&regState.key===key)return regState.promise;   // 2) đang tải đúng yêu cầu này
+ if(regState.ctl)regState.ctl.abort();                      // 3) hủy yêu cầu cũ (khác năm/mây)
+
+ const ctl=new AbortController(),[y,c]=key.split('|');
+ Object.assign(regState,{key,status:'loading',ctl});
+ setRegMsg('<span class="spin"></span>Đang tải thống kê 167 phường/xã từ GEE (lần đầu mỗi năm có thể mất 1–2 phút)...');
+ if(tab==='dist')render();                                  // bảng xếp hạng hiện spinner
+
+ regState.promise=(async()=>{
+  try{
+   const d=await J(`/api/stats/regions?year=${y}&cloud=${c}`,{signal:ctl.signal});
+   regCache.set(key,d);                                     // luôn lưu cache, kể cả khi người dùng đã chuyển năm
+   if(regState.ctl===ctl){
+    Object.assign(regState,{status:'idle',ctl:null,promise:null});
+    if(curKey()===key){geo=d;applyDistricts();}
+   }
+   return d;
+  }catch(e){
+   if(e.name==='AbortError')return null;                    // bị hủy chủ động: im lặng
+   if(regState.ctl===ctl){
+    Object.assign(regState,{status:'error',ctl:null,promise:null});
+    setRegMsg('Không tải được phường/xã: '+esc(e.message)+' · bật lại lớp để thử lại.','err');
+    if(tab==='dist')render();
+   }
+   return null;
+  }
+ })();
+ return regState.promise;
 }
+
+/* run() đổi năm/mây -> hủy request phường/xã của bản đồ cũ (đổi chỉ số thì KHÔNG hủy vì cùng khóa) */
+function cancelStaleRegions(){
+ if(regState.ctl&&regState.key!==curKey()){
+  regState.ctl.abort();
+  Object.assign(regState,{key:null,status:'idle',ctl:null,promise:null});
+ }
+}
+
+/* run() xong: cache đã có thì phục hồi ngay (0 request); chưa có thì tắt lớp và chờ người dùng bật */
+function afterRunRegions(){
+ const hit=regCache.get(curKey());
+ if(hit){geo=hit;applyDistricts();return;}
+ $('dist').checked=false;$('fill').checked=false;
+ setRegMsg('Bật “Hiện ranh giới phường/xã” để tải số liệu 167 phường/xã.');
+}
+
+/* HÀNH ĐỘNG 1: bật/tắt lớp phường/xã (checkbox #dist, #fill) */
+function onWardToggle(src){
+ const d=$('dist'),f=$('fill');
+ if(src==='fill'&&f.checked)d.checked=true;                 // tô màu cần có ranh giới
+ if(src==='dist'&&!d.checked)f.checked=false;
+ if(!d.checked){buildDistricts();return;}                   // tắt: chỉ gỡ lớp, GIỮ cache
+ if(!lastOutline){d.checked=f.checked=false;setRegMsg('Hãy bấm “Hiển thị bản đồ” trước.','err');return;}
+ geo?buildDistricts():loadRegions();                        // có sẵn -> dựng lại ngay; chưa có -> cache/API
+}
+
+/* các điểm dùng dữ liệu phường/xã khác */
+function onLiveU(){if($('liveU').value==='dist')loadRegions();render();}
+function onU3(){if($('u3').value==='ward')loadRegions();sync3D();}
+
 function distRows(){return geo?geo.districts.features.map(f=>{const p=f.properties,s=p.stats||{};
  return {key:p.name,name:p.name,lst:(s.LST||{}).mean,ndvi:(s.NDVI||{}).mean,tvdi:(s.TVDI||{}).mean,n:(s[curIdx]||{}).count};}):[];}
 
+/* ======================= HIỂN THỊ BẢN ĐỒ =======================
+   Chỉ tải: lớp tile GEE + thống kê tổng quan TP.HCM (+ lưới 5,5 km đi kèm /api/map).
+   KHÔNG tải phường/xã (xem LAZY LOADING phía trên). */
 async function run(){
- const btn=$('btn'),msg=$('msg'),idx=$('idx').value;btn.disabled=true;msg.className='';msg.textContent='Đang tính trên GEE (lần đầu mỗi năm có thể mất 1–3 phút)...';
+ // chụp tham số NGAY: nếu người dùng đổi ô chọn trong lúc chờ GEE thì nhãn/khóa cache vẫn đúng
+ const btn=$('btn'),msg=$('msg'),idx=$('idx').value,year=$('yr').value,cloud=$('c').value;
+ btn.disabled=true;msg.className='';msg.textContent='Đang tính trên GEE (lần đầu mỗi năm có thể mất 1–3 phút)...';
  try{
-  const q=new URLSearchParams({index:idx,year:$('yr').value,cloud:$('c').value,classify:$('cls').checked&&idx!=='NDVI'});
+  const q=new URLSearchParams({index:idx,year,cloud,classify:$('cls').checked&&idx!=='NDVI'});
   const r=await fetch('/api/map?'+q),d=await r.json();if(!r.ok)throw new Error(d.detail||('Lỗi '+r.status));
-  initMap();clearLayers();gridLayers={};geo=null;regTok++;const {min:lo,max:hi,palette:pal}=d.vis;
-  curIdx=idx;curVis=d.vis;lastOutline=d.outline;lastR=d.r;lastRY=$('yr').value;
+  initMap();clearLayers();gridLayers={};geo=null;           // geo=null: bản đồ mới chưa có phường/xã (cache vẫn giữ)
+  const {min:lo,max:hi,palette:pal}=d.vis;
+  curIdx=idx;curVis=d.vis;lastOutline=d.outline;lastR=d.r;lastRY=year;lastC=cloud;
+  cancelStaleRegions();                                     // đổi năm/mây -> hủy request phường/xã cũ
+
+  // lớp ảnh chỉ số (tile GEE) + mặt nạ
   geeLayer=L.tileLayer(d.tile_url,{pane:'gee',opacity:opacityNow()});
-  addLayer(geeLayer,`${idx} ${$('yr').value} (GEE)`);
+  addLayer(geeLayer,`${idx} ${year} (GEE)`);
   buildMask();
+  // lưới 5,5 km: tô màu / bấm xem số liệu / điểm nóng Gi*
   addLayer(L.geoJSON(d.geojson,{interactive:false,style:f=>{const m=f.properties.mean;return m==null?{fillOpacity:0,weight:0}:{color:'#444',weight:.4,fillColor:colorAt((m-lo)/(hi-lo),pal),fillOpacity:.6};}}),'Ô lưới tô màu theo trung bình',false);
   gridGroup=L.geoJSON(d.geojson,{style:{color:'#333',weight:.5,fillOpacity:0},onEachFeature:(f,l)=>{const p=f.properties;gridLayers[p.Code]=l;
    l.bindPopup(`<b>${p.Name}</b><br>Trung bình: ${f3(p.mean)}<br>Min: ${f3(p.min)} · Max: ${f3(p.max)}<br>Độ lệch chuẩn: ${f3(p.stdDev)}<br>Số pixel: ${p.count??'–'}`);}});
@@ -179,6 +269,8 @@ async function run(){
   const gi=(d.spatial&&d.spatial.gi)||{};
   addLayer(L.geoJSON(d.geojson,{interactive:false,style:f=>{const c=giColor((gi[f.properties.Code]||{}).z);return c?{fillColor:c,fillOpacity:.7,weight:.3,color:'#555'}:{fillOpacity:0,weight:0};}}),'Điểm nóng/lạnh Gi* (ô lưới)',false);
   map.fitBounds(outlineLayer.getBounds());map.setMaxBounds(outlineLayer.getBounds().pad(0.6));
+
+  // thống kê tổng quan cấp thành phố
   $('m').textContent=f3(d.city.mean);$('sd').textContent=f3(d.city.stdDev);$('mn').textContent=f3(d.city.min);$('mx').textContent=f3(d.city.max);$('n').textContent=d.city.count??'–';
   const cl=d.classes||[];$('legend').style.display=cl.length?'none':'block';$('lg').style.display=cl.length?'none':'flex';
   $('legend').style.background='linear-gradient(to right,'+pal.join(',')+')';$('l0').textContent=lo;$('l1').textContent=hi;
@@ -188,10 +280,11 @@ async function run(){
   gridRows=d.geojson.features.map(f=>({...f.properties,gi:(gi[f.properties.Code]||{}).z,nhom:(gi[f.properties.Code]||{}).nhom}));setTab('grid',false);
   const e=d.edges;msg.className=d.db_error?'err':'ok';
   msg.textContent=(d.db_error||'Hoàn tất')+` · ${d.n_images} ảnh Landsat 8/9 · Ts_max = ${e.a.toFixed(1)} ${e.b<0?'−':'+'} ${Math.abs(e.b).toFixed(1)}·NDVI, Ts_min = ${e.tmin.toFixed(1)}°C`;
-   lastTile=d.tile_url;lastGrid=d.geojson;sync3D();   // đẩy dữ liệu sang bản đồ 3D (map3d.js)
-   loadRegions($('yr').value,$('c').value);       // không chờ: bản đồ đã hiện, phường/xã tải sau
-   const sh=$('statHint');if(sh)sh.style.display='none';  // số liệu đã sẵn sàng trong khối Thống kê
-   $('f-stat').open=true;fixMap();
+  lastTile=d.tile_url;lastGrid=d.geojson;sync3D();          // đẩy dữ liệu sang bản đồ 3D (map3d.js)
+
+  afterRunRegions();                                        // KHÔNG gọi API: chỉ phục hồi từ cache nếu có
+  const sh=$('statHint');if(sh)sh.style.display='none';     // số liệu đã sẵn sàng trong khối Thống kê
+  $('f-stat').open=true;fixMap();
  }catch(err){msg.className='err';msg.textContent='Lỗi: '+err.message;}finally{btn.disabled=false;}
 }
 

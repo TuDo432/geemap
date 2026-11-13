@@ -92,3 +92,18 @@ button:disabled { background: #9bb8e8; cursor: wait; }
 .field-wide { max-width: 760px; }
 .mt-8 { margin-top: 8px; }
 .mt-12 { margin-top: 12px; }
+
+/* ===== SPINNER NHỎ (dòng trạng thái đang tải phường/xã) ===== */
+.spin {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 7px;
+  border: 2px solid #c2cfdd;
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  vertical-align: -2px;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2s; } }
