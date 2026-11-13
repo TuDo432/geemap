@@ -313,11 +313,24 @@
    <label>Năm<select id="cy"></select></label><label>Chỉ số (hộp/histogram)<select id="ci"><option>LST</option><option>NDVI</option><option>TVDI</option></select></label><button class="b btn-flush" onclick="drawLab()">Vẽ biểu đồ</button></div>
   <div class="msg" id="cmsg2"></div><div class="msg msg-desc" id="cdesc"></div><div id="cw"></div>
   <div class="msg msg-muted">Biểu đồ đường và biểu đồ kết hợp theo thời gian nằm ở mục 3. Bản đồ nhiệt (heat map) là bản đồ ở mục 1 và bảng nhiệt ở mục 2.2.</div></div></div>
+
+  <!-- [SỬA LỖI 2] Pane kiểm chứng: có đủ các id mà series.js (valid / validSeries / vCanvases) cần:
+       #vy (chọn năm), #vbtn (đối chiếu theo pixel), #vbtn2 (đối chiếu chuỗi năm),
+       #vmsg (thông báo), #vtab (bảng kết quả), #vsc (vùng biểu đồ), #ftab (bảng dự báo). -->
   <div class="tool-pane" id="tp-valid"><div class="doc">
-  <h2>Đối chiếu với các nghiên cứu đã công bố</h2><div id="vtab" class="tw"></div>
-  <p class="note-sm">Đối chiếu này không thay thế đo đạc thực địa; chỉ đánh giá tính hợp lý về xu hướng và quan hệ (đề cương mục 6.8). Mann–Kendall và độ dốc Sen tính trên chuỗi trung bình mùa khô.</p>
+  <h2>Đối chiếu với dữ liệu độc lập trên GEE</h2>
+  <div class="row row-chart">
+   <label>Năm (mùa khô)<select id="vy"></select></label>
+   <button class="b btn-flush" id="vbtn" onclick="valid(true)">Đối chiếu theo pixel</button>
+   <button class="b alt btn-flush" id="vbtn2" onclick="validSeries()">Đối chiếu chuỗi năm</button>
+  </div>
+  <div class="msg" id="vmsg"></div>
+  <div id="vtab" class="tw"></div>
+  <div id="vsc" style="display:flex;flex-wrap:wrap;gap:16px;margin-top:12px"></div>
+  <p class="note-sm">Landsat (web) được đối chiếu trực tiếp với các bộ dữ liệu độc lập trên GEE: MODIS MOD11A1 (LST), MODIS MOD13Q1 (NDVI), ERA5-Land (độ ẩm đất) và CHIRPS (mưa) cho TVDI. Mọi chỉ số sai số tính từ cặp pixel thật, không dùng số liệu từ bài báo. MODIS là sản phẩm vệ tinh đã được kiểm định; ERA5-Land là tái phân tích, không phải đo trực tiếp. Đối chiếu này không thay thế đo đạc thực địa.</p>
   <h2>Dự báo cơ sở 3 năm tới</h2><div id="ftab" class="tw"></div>
-  <p class="note-sm">Hồi quy tuyến tính theo năm (± 1,96 × sai số dư). Đây là mô hình cơ sở để so sánh; chưa phải mô hình học máy/học sâu.</p></div></div>
+  <p class="note-sm">Hồi quy tuyến tính theo năm (± 1,96 × sai số dư) trên chính chuỗi đã quét. Đây là mô hình cơ sở để so sánh; chưa phải mô hình học máy/học sâu.</p></div></div>
+
   <div class="tool-pane" id="tp-export"><div class="doc"><h2>Dữ liệu &amp; xuất file (đề cương mục 7.10)</h2>
   <div class="row row-narrow"><label>Chỉ số<select id="ei"><option>LST</option><option>NDVI</option><option>TVDI</option></select></label><label>Năm<select id="ey"></select></label></div>
   <div class="cards">
@@ -367,5 +380,5 @@
 <script src="/static/js/export.js?v=1"></script>
 <script src="/static/js/history.js?v=2"></script>
 <script src="/static/js/auto.js?v=2"></script>
-<script src="/static/js/main.js?v=6"></script>
+<script src="/static/js/main.js?v=7"></script>
 </body></html>

@@ -23,12 +23,24 @@ if(window.Chart){
  Chart.defaults.elements.point.hoverRadius=6.5;
 }
 
-/* điền danh sách năm vào các ô chọn */
-for(const id of ['yr','ey','sy','cy', 'vy']){for(let y=Y;y>=2016;y--)$(id).add(new Option(y,y));$(id).value=Math.min(2025,Y);}
-$('y2').value=Y;
-(()=>{const hy=$('hy');hy.add(new Option('Tất cả',''));for(let y=Y;y>=2016;y--)hy.add(new Option(y,y));})();
+/* ---------- điền danh sách năm vào các ô chọn ----------
+   [SỬA LỖI 1] Trước đây gọi $(id).add(...) trực tiếp: chỉ cần MỘT id không tồn tại trong
+   index.html (ví dụ 'vy') là $(id) trả về null -> TypeError -> toàn bộ phần phía dưới
+   (drawScale, /api/classes, render, loadAll) không bao giờ chạy.
+   Giờ: bỏ qua ô thiếu, mỗi ô được bọc riêng nên một ô lỗi không làm hỏng ô khác. */
+function fillYears(id,{all=false,from=2016,select=Math.min(2025,Y)}={}){
+ const el=$(id);
+ if(!el){console.warn('fillYears: không thấy #'+id);return;}
+ el.innerHTML='';                                   // chạy lại nhiều lần không bị trùng năm
+ if(all)el.add(new Option('Tất cả',''));
+ for(let y=Y;y>=from;y--)el.add(new Option(y,y));
+ if(!all)el.value=select;
+}
+['yr','ey','sy','cy','vy'].forEach(id=>fillYears(id));
+fillYears('hy',{all:true});                         // bộ lọc năm ở "Lịch sử & ảnh": có mục "Tất cả"
+{const y2=$('y2');if(y2)y2.value=Y;}
 
-/* thang màu (nổi trên bản đồ) */
+/* ---------- thang màu (nổi trên bản đồ) ---------- */
 function drawScale(c){
  $('scale').innerHTML=IDX.map(k=>{const v=VISJS[k],n=v.palette.length,st=(v.max-v.min)/n,d=k==='LST'?1:2;
   return `<div class="sc-row"><div class="sc-name"><b>${k}</b> · ${NM[k].split('– ')[1]} <span>(${v.min} → ${v.max})</span></div>
@@ -37,7 +49,7 @@ function drawScale(c){
  const rows=['TVDI','LST'].flatMap(k=>(c[k]||[]).map(x=>({k,...x})));
  $('clsTab').innerHTML=rows.length?tbl([T('k','Chỉ số'),T('name','Mức độ'),T('lo','Từ'),T('hi','Đến'),{k:'color',l:'Màu',f:v=>`<span class="sw" style="background:${v}"></span>`}],rows):'';}
 
- drawScale({});   // vẽ ngay thang màu mặc định, không chờ server
+drawScale({});   // vẽ ngay thang màu mặc định, không chờ server
 (async()=>{
   try{
     const c=await J('/api/classes');
@@ -56,4 +68,4 @@ try{if(localStorage.getItem('scaleOn')==='1')toggleScale(true);}catch(e){}
 
 /* tải dữ liệu ban đầu */
 render();loadAll();
-fetch('/api/scan/status').then(r=>r.json()).then(s=>{if(s.running){$('scan').disabled=true;poll();}});
+fetch('/api/scan/status').then(r=>r.json()).then(s=>{if(s.running){$('scan').disabled=true;poll();}}).catch(()=>{});
