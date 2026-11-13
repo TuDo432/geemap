@@ -2,7 +2,7 @@
 
 /* Chart.js: mặc định typography chung cho mọi biểu đồ (cỡ lớn, tương phản cao) */
 if(window.Chart){
- Chart.defaults.font.family='"Segoe UI", sans-serif';
+ Chart.defaults.font.family='system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
  Chart.defaults.font.size=14;
  Chart.defaults.color='#33475c';
  Chart.defaults.plugins.title.font={size:17,weight:'700'};

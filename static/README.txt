@@ -6,3 +6,5 @@ CẤU TRÚC static/
   img/  đặt Logo.png vào đây
 Sau khi sửa file, tăng số ?v=1 trong HTML để trình duyệt nạp lại.
 Có thể xóa style.css, mapstyle.css, script.js, scriptmap.js, Map.html, map.html, fullmap.js, fullmap.css cũ.
+
+uvicorn app.main:app --reload

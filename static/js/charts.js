@@ -7,7 +7,7 @@ const CH={col:'Cột: so sánh giá trị trung bình LST, NDVI, TVDI giữa to�
  his:'Histogram: phân bố tần suất pixel của chỉ số được chọn trên toàn khu vực nghiên cứu.',
  tri:'Tam giác TVDI: không gian Ts–NDVI với biên khô (đỏ) và biên ướt (xanh).'};
 const ZC=['#455a64','#e53935','#1e88e5','#43a047'];let cc=[];
-function canv(n){$('cw').innerHTML=Array.from({length:n},(_,i)=>`<div style="flex:1 1 ${n>1?300:640}px;max-width:${n>1?'32%':'900px'}"><canvas id="cv${i}"></canvas></div>`).join('');return [...Array(n).keys()].map(i=>$('cv'+i));}
+function canv(n){$('cw').innerHTML=Array.from({length:n},(_,i)=>`<div style="flex:1 1 ${n>1?320:760}px;max-width:${n>1?'33%':'1060px'}"><canvas id="cv${i}"></canvas></div>`).join('');return [...Array(n).keys()].map(i=>$('cv'+i));}
 async function drawLab(){
  const t=$('ct').value,k=$('ci').value,m=$('cmsg2'),q=`year=${$('cy').value}&cloud=${$('c').value}`;m.className='msg';m.textContent='Đang lấy dữ liệu từ GEE (lần đầu có thể mất 1–3 phút)...';$('cdesc').textContent=CH[t];cc.forEach(c=>c.destroy());cc=[];
  const mk2=(el,cfg)=>cc.push(new Chart(el,cfg));

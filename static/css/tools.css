@@ -1,16 +1,198 @@
-/* ===== TRANG CÔNG CỤ: thanh tab con + các khung nội dung ===== */
-.toolbar {
-  padding: 12px 24px 0;
-  position: sticky;
-  top: 0;
-  background: #fff;
-  z-index: 5;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 10px;
-}
+/* ===== TRANG CÔNG CỤ (bản tối ưu typography & tương phản) =====
+   Font hệ thống hiện đại (system-ui) đặt ở base.css; ở đây chuẩn hóa
+   cỡ chữ ≥14.5px, line-height 1.55–1.7 và màu nhãn đậm #33475c cho dễ quét. */
 
+/* ---------- khung chung ---------- */
 .tool-pane { display: none; }
 .tool-pane.on { display: block; }
 
-/* phân tích & đánh giá */
-.ana-sum { border-left: 6px solid var(--blue); background: #f6f8fa; padding: 10px 14px; border-radius: 6px; margin-top: 12px; line-height: 1.6; }
+#v-tools .pg {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 24px 32px 64px;
+}
+#v-tools .doc {
+  max-width: 1160px;
+  padding: 26px 32px 64px;
+  line-height: 1.7;
+}
+
+/* ---------- tiêu đề trang + thanh tab dính ---------- */
+.to-hero {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 28px 32px 12px;
+}
+.to-hero h2 {
+  margin: 0;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -.3px;
+  color: var(--navy);
+}
+.to-hero .tx-sub { margin-top: 5px; font-size: 14.5px; font-weight: 600; color: #57687a; }
+
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 10px 32px 14px;
+  background: rgba(255, 255, 255, .96);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(11, 42, 74, .06);
+}
+.toolbar > .seg-stats { margin: 0; max-width: 1240px; }
+.toolbar .seg-stats button { margin: 0; }
+
+/* ---------- nhãn + ô nhập + nút ---------- */
+#v-tools label {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #33475c;
+  margin-top: 12px;
+}
+#v-tools .row { gap: 12px; }
+#v-tools .row label { margin-top: 12px; }
+#v-tools select,
+#v-tools input[type=number] {
+  font-size: 15.5px;
+  padding: 9px 11px;
+  margin-top: 5px;
+  border: 1.5px solid #c2cfdd;
+  border-radius: 9px;
+  background: #fff;
+  color: #1d2733;
+}
+#v-tools select:hover,
+#v-tools input[type=number]:hover { border-color: #90a9c4; }
+#v-tools input[type=checkbox] { width: 17px; height: 17px; accent-color: var(--blue); vertical-align: -3.5px; margin-right: 6px; }
+#v-tools button.b {
+  width: auto;
+  font-size: 15.5px;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(26, 115, 232, .30);
+}
+#v-tools button.b.alt { box-shadow: none; }
+
+/* ---------- văn bản trạng thái / mô tả ---------- */
+#v-tools .msg { font-size: 14.5px; line-height: 1.55; }
+#v-tools .msg-desc,
+#v-tools .cdesc {
+  padding: 12px 16px;
+  margin-top: 12px;
+  background: #eef5ff;
+  border: 1px solid #cfe2fa;
+  border-left: 5px solid var(--blue);
+  border-radius: 10px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #24425f;
+}
+#v-tools .msg-muted { font-size: 14px; line-height: 1.6; color: #57687a; }
+
+/* ghi chú nhỏ cuối mục (Kiểm chứng, Tự động hóa) → thẻ guidance */
+#v-tools .note-sm {
+  padding: 12px 15px;
+  margin: 10px 0 0;
+  background: #f7fafd;
+  border: 1px dashed #c2cfdd;
+  border-radius: 10px;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: #44576b;
+}
+
+/* ---------- tiêu đề block tài liệu ---------- */
+#v-tools .doc h2 {
+  font-size: 21px;
+  margin-top: 34px;
+  padding-bottom: 6px;
+}
+#v-tools .tw > b:first-child {
+  display: block;
+  color: var(--navy);
+  font-size: 16.5px;
+  padding: 12px 2px;
+}
+
+/* ---------- bảng số liệu: lớn, zebra, header keo ---------- */
+#v-tools .tw table,
+#v-tools .doc table { font-size: 15px; font-variant-numeric: tabular-nums; }
+#v-tools .tw th, #v-tools .tw td,
+#v-tools .doc th, #v-tools .doc td { padding: 10px 14px; border-bottom: 1px solid #e9eef4; }
+#v-tools .tw th,
+#v-tools .doc th { font-size: 14.5px; color: var(--navy); background: #eef3f9; }
+#v-tools .tw tbody tr:nth-child(even),
+#v-tools .doc tbody tr:nth-child(even) { background: #fafcfe; }
+#v-tools .tw tbody tr:hover,
+#v-tools .doc tbody tr:hover { background: #e8f0fe; }
+#v-tools table.v td { line-height: 1.6; white-space: normal; }
+#v-tools .empty { font-size: 15px; color: #57687a; line-height: 1.6; padding: 22px 18px; }
+
+/* ---------- thẻ xuất dữ liệu (Dữ liệu & xuất file) ---------- */
+#v-tools .cards {
+  gap: 14px;
+  margin-top: 14px;
+}
+#v-tools .cards div {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(11, 42, 74, .06);
+}
+#v-tools .cards > div > b { font-size: 16px; color: var(--navy); line-height: 1.4; }
+#v-tools .card-desc { display: block; font-size: 14.5px; color: #44576b; line-height: 1.6; margin: 6px 0 10px; }
+#v-tools .cards label { font-size: 14px; margin-top: 8px; }
+#v-tools .cards button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 9px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+/* ---------- lưới ảnh lượt quét (history.js render bằng class + .im-grid) ---------- */
+.im-grid { display: flex; flex-wrap: wrap; gap: 14px; padding-top: 12px; }
+.im-grid .ri {
+  display: block;
+  width: 280px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #22303d;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  background: #fff;
+}
+.im-grid .ri:hover { border-color: var(--blue); box-shadow: 0 2px 8px rgba(26, 115, 232, .18); }
+.im-grid .ri img { width: 100%; background: #eef2f6; border: 1px solid #d5dfe9; border-radius: 7px; margin-bottom: 8px; }
+.im-grid .ri b { color: var(--navy); font-size: 14.5px; }
+.im-grid .ri .hash { display: block; font-size: 12.5px; color: #6b7c8d; word-break: break-all; }
+
+/* ---------- tóm tắt phân tích + badge mức ---------- */
+#v-tools .ana-sum {
+  border-left: 6px solid var(--blue);
+  background: #f2f7fd;
+  padding: 14px 18px;
+  border-radius: 10px;
+  margin-top: 14px;
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: #24425f;
+}
+#v-tools .ana-sum b { color: var(--navy); }
+#v-tools .badge { font-size: 13.5px; padding: 4px 12px; }
+
+/* ---------- điểm chạm bàn phím ---------- */
+#v-tools :focus-visible { outline: 3px solid #4fa3ff; outline-offset: 2px; }
+
+@media (max-width: 720px) {
+  #v-tools .pg, #v-tools .doc, .to-hero { padding-left: 16px; padding-right: 16px; }
+  .toolbar { padding: 8px 16px 12px; }
+}

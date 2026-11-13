@@ -15,7 +15,8 @@
 
 body {
   margin: 0;
-  font-family: "Segoe UI", sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.55;
   color: var(--text);
 }
 
@@ -70,10 +71,12 @@ button:disabled { background: #9bb8e8; cursor: wait; }
 .badge {
   display: inline-block;
   color: #fff;
-  padding: 2px 10px;
+  padding: 4px 12px;
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
 }
 
 /* ===== LỚP TIỆN ÍCH ===== */
