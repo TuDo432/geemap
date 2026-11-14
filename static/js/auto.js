@@ -1,4 +1,4 @@
-/* ===== TỰ ĐỘNG HÓA: trạng thái, thông số hiện tại, nhật ký & phân tích tự động ===== */
+/* ===== TỰ ĐỘNG HÓA (chỉ Admin): trạng thái, thông số hiện tại, nhật ký & phân tích tự động ===== */
 let auTimer=null,auInit=false,auWas=false,auLastId,auSnapLast=null,auImgKey='',auM='year',auCh=null;
 const MUCC={'Ổn định':'#2e7d32','Lưu ý':'#f9a825','Cảnh báo':'#c62828'};
 const EV={KIEM_TRA:'Không có ảnh mới',ANH_MOI:'Có ảnh mới (ngoài mùa khô)',QUET_NAM:'Đã quét lại năm',LOI:'Lỗi'};
@@ -10,6 +10,7 @@ const AUC=[T('ThoiGian','Thời gian'),T('Nguon','Nguồn'),{k:'Su_Kien',l:'Sự
 const SNC=[T('ThoiGian','Chụp lúc'),T('Ngay_BatDau','Từ ngày'),T('Ngay_KetThuc','Đến ngày'),N('So_Anh','Số ảnh',0),N('LST_TB','LST TB (°C)',2),dsg('dL','Δ LST',2),N('LST_Min','LST min',2),N('LST_Max','LST max',2),
  N('NDVI_TB','NDVI TB'),dsg('dN','Δ NDVI',3),N('TVDI_TB','TVDI TB'),dsg('dT','Δ TVDI',3),T('Muc_LST','Mức LST'),T('Muc_TVDI','Mức khô hạn')];
 async function loadAuto(){
+ if(!isAdmin())return;
  const m=$('auMsg');
  try{
   const [s,lg,sn]=await Promise.all([J('/api/auto/status'),J('/api/auto/log'),J('/api/auto/snapshots')]);
@@ -30,7 +31,7 @@ async function loadAuto(){
   const snd=sn.map((r,i)=>{const p=sn[i+1],d=k=>p&&r[k]!=null&&p[k]!=null?r[k]-p[k]:null;return {...r,dL:d('LST_TB'),dN:d('NDVI_TB'),dT:d('TVDI_TB')};});
   $('auSnap').innerHTML=sn.length?tbl(SNC,snd):'<div class="empty">Chưa có chụp nhanh nào.</div>';
   const key=x?`${x.Ma_ChupNhanh}|${c.CUA_SO_NGAY}`:'';             // chỉ nạp lại ảnh khi có chụp nhanh mới
-  if(key!==auImgKey){auImgKey=key;
+  if(key!==auImgKey&&isAdmin()){auImgKey=key;
    $('auImgs').innerHTML=x?IDX.map(k=>{const v=VISJS[k],u=`/api/auto/image?index=${k}&days=${c.CUA_SO_NGAY}&cloud=60&v=${x.Ma_ChupNhanh}`;
     return `<div><b>${NM[k]}</b><br><a href="${u}" download="${k}_hien_tai.png"><img loading="lazy" src="${u}" alt="Đang tạo ảnh ${k}..." style="width:100%;background:#eee;border:1px solid #ccd"></a>`+
      `<span style="display:block;height:10px;margin-top:6px;background:linear-gradient(to right,${v.palette.join(',')})"></span>`+
@@ -41,7 +42,7 @@ async function loadAuto(){
   auLastId=id;auWas=busy;
   if(m.classList.contains('err')){m.className='msg';m.textContent='';}
  }catch(e){m.className='msg err';m.textContent='Không đọc được dữ liệu tự động hóa: '+e.message+' (đã chạy WebGIS_tudong.sql chưa?)';}}
-async function auVec(kind){const m=$('auMsg');m.className='msg';m.textContent='Đang tạo vector...';
+async function auVec(kind){if(needAdmin())return;const m=$('auMsg');m.className='msg';m.textContent='Đang tạo vector...';
  try{const d=await J(`/api/auto/vector?kind=${kind}&days=${$('auW').value}&cloud=60`);
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/geo+json'}));
   a.download=kind==='grid'?'o_luoi_hien_tai.geojson':'ranh_gioi_TPHCM.geojson';a.click();m.className='msg ok';m.textContent='Đã tải vector.';}
@@ -69,12 +70,12 @@ function auSeries(){   // cùng quy tắc mục Chuỗi thời gian (năm / thá
  sortKey=null;
  $('auSer').innerHTML=tbl([T('lb',isY?'Năm / hiện tại':'Tháng / hiện tại'),N('lst','LST TB (°C)',2),dsg('dL','Δ LST',2),N('ndvi','NDVI TB'),dsg('dN','Δ NDVI',3),N('tvdi','TVDI TB'),dsg('dT','Δ TVDI',3)],rows);}
 
-async function auSave(){const m=$('auMsg');
+async function auSave(){if(needAdmin())return;const m=$('auMsg');
  try{const q=new URLSearchParams({bat:$('auOn').checked,hours:$('auH').value,cloud:$('auC').value,window:$('auW').value}),
    r=await fetch('/api/auto/config?'+q,{method:'POST'}),d=await r.json();if(!r.ok)throw new Error(typeof d.detail==='string'?d.detail:'Giá trị không hợp lệ');
   m.className='msg ok';m.textContent='Đã lưu cấu hình.';loadAuto();}
  catch(e){m.className='msg err';m.textContent='Lỗi: '+e.message;}}
-async function auRun(force){const m=$('auMsg');m.className='msg';
+async function auRun(force){if(needAdmin())return;const m=$('auMsg');m.className='msg';
  try{const r=await fetch('/api/auto/run?force='+force,{method:'POST'}),d=await r.json();if(!r.ok)throw new Error(d.detail||('Lỗi '+r.status));
   m.textContent='Đã bắt đầu, trang tự cập nhật...';setTimeout(loadAuto,2000);}
  catch(e){m.className='msg err';m.textContent='Lỗi: '+e.message;}}

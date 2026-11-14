@@ -9,12 +9,15 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from .db import engine, fixkeys
 from . import gee_service as g
-from . import spatial            
-from . import validation as val                       # [MỚI] Moran's I, Getis-Ord Gi*
+from . import spatial
+from . import validation as val
+from . import auth                                    # [MỚI] phân quyền Admin / User
 from .indices import INDICES, VIS
 
 log = logging.getLogger("uvicorn.error")
 app = FastAPI(title="WebGIS HCMC Monitoring")
+app.include_router(auth.router)                       # /api/auth/login, /logout, /me
+app.middleware("http")(auth.access_guard)             # chốt chặn: User chỉ gọi được danh sách trắng
 app.mount("/static", StaticFiles(directory="static"), name="static")
 REGION, THIS_YEAR = "HCM_ROI", date.today().year
 JOB = dict(running=False, done=0, total=0, ok=0, msg="", errors=[], run_id=None)
@@ -78,7 +81,9 @@ def map_(request: Request, index: str, year: int = Query(..., ge=2014, le=THIS_Y
     except ee.EEException as e:
         log.exception("GEE error"); raise HTTPException(502, f"Lỗi Google Earth Engine: {e}")
     _log(request, "Xem bản đồ", index, year)
-    return {**r, "classes": classes, "db_error": db_error, "spatial": spatial.analyze(r["geojson"])}   # [MỚI] spatial
+    # Moran's I / Gi* là phân tích chuyên sâu: chỉ Admin nhận được
+    sp = spatial.analyze(r["geojson"]) if auth.get_role(request)[0] == "admin" else None
+    return {**r, "classes": classes, "db_error": db_error, "spatial": sp}
 
 # ---------- quét chuỗi thời gian -> SQL ----------
 MERGE = text("""
@@ -315,7 +320,7 @@ def report(request: Request):
     _log(request, "Xuất báo cáo CSV")
     return FileResponse(path, filename=name, media_type="text/csv", headers={"X-Report-Id": str(bid)})
 
-# ---------- [MỚI] thang màu, thống kê, biểu đồ so sánh ----------
+# ---------- thang màu, thống kê, biểu đồ so sánh ----------
 def _gee_call(fn, *a):
     try:
         return fn(*a)
@@ -436,7 +441,7 @@ def image(aid: int):
     if not data: raise HTTPException(404, "Không có dữ liệu ảnh")
     return Response(content=data, media_type="image/png")
 
-# ---------- [MỚI] TỰ ĐỘNG HÓA: theo dõi ảnh Landsat mới -> tự quét + chụp nhanh + đánh giá ----------
+# ---------- TỰ ĐỘNG HÓA: theo dõi ảnh Landsat mới -> tự quét + chụp nhanh + đánh giá ----------
 AUTO = dict(checking=False, last_check=None, next_check=None, last_msg="Chưa chạy", last_error=None)
 _AUTO_DEFAULT = {"BAT": "0", "CHU_KY_GIO": "12", "MAY_MAX": "30", "CUA_SO_NGAY": "60"}
 MUC, SNAP_CLOUD, _TRY = ("Ổn định", "Lưu ý", "Cảnh báo"), 60, [0.0]

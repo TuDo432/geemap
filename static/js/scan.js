@@ -1,5 +1,5 @@
-/* ===== QUÉT CHUỖI THỜI GIAN ===== */
-async function scan(){const m=$('smsg');$('scan').disabled=true;m.className='msg';
+/* ===== QUÉT CHUỖI THỜI GIAN (chỉ Admin) ===== */
+async function scan(){if(needAdmin())return;const m=$('smsg');$('scan').disabled=true;m.className='msg';
  try{const r=await fetch(`/api/scan?start=${$('y1').value}&end=${$('y2').value}&cloud=${$('c').value}&mode=${$('mode').value}`,{method:'POST'}),d=await r.json();if(!r.ok)throw new Error(d.detail||('Lỗi '+r.status));poll();}
  catch(e){m.className='msg err';m.textContent='Lỗi: '+e.message;$('scan').disabled=false;}}
 async function poll(){const s=await (await fetch('/api/scan/status')).json(),m=$('smsg');

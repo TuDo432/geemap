@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="/static/css/series.css?v=1">
 <link rel="stylesheet" href="/static/css/tools.css?v=2">
 <link rel="stylesheet" href="/static/css/auto.css?v=2">
+<link rel="stylesheet" href="/static/css/auth.css?v=1">
 </head><body>
 
 <!-- ===== TRANG BÌA (bản tối ưu: brand lockup → title → phụ đề → fact chips → intro → tính năng → CTA) ===== -->
@@ -39,7 +40,22 @@
   <div><span>📈</span><b>Theo dõi theo thời gian</b>So sánh các năm 2016–2026 và dự báo xu hướng</div>
   <div><span>📥</span><b>Thống kê &amp; xuất dữ liệu</b>Biểu đồ, bảng số liệu, tải về GeoTIFF/CSV</div>
  </div>
- <button class="btn-enter" onclick="enter()">Vào hệ thống WebGIS <span class="ar" aria-hidden="true">→</span></button>
+ <button class="btn-enter" onclick="openLogin()">Vào hệ thống WebGIS <span class="ar" aria-hidden="true">→</span></button>
+</div>
+
+<!-- ===== MODAL ĐĂNG NHẬP (Admin) / TIẾP TỤC VỚI TƯ CÁCH KHÁCH ===== -->
+<div id="loginModal" role="dialog" aria-modal="true" aria-labelledby="lgTitle" onclick="if(event.target===this)closeLogin()">
+ <form class="lg-card" onsubmit="doLogin(event)" autocomplete="off">
+  <h3 id="lgTitle">🔐 Đăng nhập hệ thống</h3>
+  <div class="lg-sub">Đăng nhập Admin để quét dữ liệu mới và quản trị. Hoặc tiếp tục với tư cách Khách để xem bản đồ.</div>
+  <label for="lgUser">Tài khoản</label><input id="lgUser" autocomplete="username">
+  <label for="lgPass">Mật khẩu</label><input id="lgPass" type="password" autocomplete="current-password">
+  <div class="msg" id="lgMsg" role="alert"></div>
+  <button type="submit" class="lg-go" id="lgGo">Đăng nhập (Admin)</button>
+  <div class="lg-or">— hoặc —</div>
+  <button type="button" class="lg-guest" onclick="asGuest()">Tiếp tục với tư cách Khách / User cơ bản</button>
+  <div class="lg-note">Khách: xem bản đồ (mọi năm), thống kê tổng quan và chuỗi thời gian. Không thể quét, chỉnh sửa dữ liệu hay dùng các công cụ chuyên sâu.</div>
+ </form>
 </div>
 
 <!-- ===== KHUNG ỨNG DỤNG ===== -->
@@ -47,11 +63,13 @@
  <header><img class="hlogo" src="/static/img/Logo.png" alt="" onerror="this.style.display='none'">
   <nav>
    <button data-v="map" onclick="go('map')">Bản đồ</button>
-   <button data-v="stats" onclick="go('stats')">Bảng thống kê</button>
+   <button data-v="stats" class="admin-only" onclick="go('stats')">Bảng thống kê</button>
    <button data-v="series" onclick="go('series')">Chuỗi thời gian</button>
-   <button data-v="auto" onclick="go('auto')">Tự động hóa</button>
-   <button data-v="tools" onclick="go('tools')">Công cụ</button>
+   <button data-v="auto" class="admin-only" onclick="go('auto')">Tự động hóa</button>
+   <button data-v="tools" class="admin-only" onclick="go('tools')">Công cụ</button>
   </nav>
+  <span id="roleBadge" class="badge role-badge"></span>
+  <button class="back" id="roleBtn" onclick="roleAction()">Đăng nhập Admin</button>
   <button class="back" onclick="leave()">Bìa</button></header>
  <main>
 
@@ -79,12 +97,13 @@
        <label>Độ trong suốt lớp chỉ số<input type="range" id="op" min="0.1" max="1" step="0.05" value="0.6" style="width:100%"></label>
        <button class="b" id="btn" onclick="run()">Hiển thị bản đồ</button>
        <div class="msg" id="msg"></div>
-       <div class="sub">
+       <!-- Phường/xã: chỉ Admin (cần /api/stats/regions) -->
+       <div class="sub admin-only">
         <!-- LAZY LOADING: mặc định KHÔNG tick; bật lớp mới tải 167 phường/xã -->
         <label><input type="checkbox" id="dist" onchange="onWardToggle('dist')"> Hiện ranh giới phường/xã</label>
         <label><input type="checkbox" id="fill" onchange="onWardToggle('fill')"> Tô màu phường/xã theo trung bình chỉ số</label>
        </div>
-       <div class="msg" id="rgmsg"></div>
+       <div class="msg admin-only" id="rgmsg"></div>
       </div>
      </details>
 
@@ -131,8 +150,8 @@
       </div></div>
      </details>
 
-     <!-- NHÓM 5: quét chuỗi thời gian -->
-     <details class="fold" id="f-scan">
+     <!-- NHÓM 5: quét chuỗi thời gian (chỉ Admin) -->
+     <details class="fold admin-only" id="f-scan">
       <summary>⏳ Quét chuỗi thời gian (PostgreSQL)</summary>
       <div class="fold-body">
        <div class="row"><label>Từ năm<input type="number" id="y1" value="2016" min="2014"></label><label>Đến năm<input type="number" id="y2" min="2014"></label></div>
@@ -142,7 +161,7 @@
       </div>
      </details>
 
-     <!-- NHÓM 6: bảng dữ liệu (thay 6 nút bảng của thanh icon cũ) -->
+     <!-- NHÓM 6: bảng dữ liệu (Khách chỉ còn: theo năm, ô lưới, thời gian thực) -->
      <details class="fold" id="f-data">
       <summary>📋 Bảng dữ liệu</summary>
       <div class="fold-body">
@@ -174,7 +193,7 @@
    </div>
   </section>
 
-  <!-- ===== 2. BẢNG THỐNG KÊ (bản tối ưu: tiêu đề + năm công cụ, tab bỏ số 1–5) ===== -->
+  <!-- ===== 2. BẢNG THỐNG KÊ (chỉ Admin) ===== -->
   <section id="v-stats" class="view"><div class="pg pg-stats">
    <div class="tx-hero">
     <div class="tx-id">
@@ -189,7 +208,7 @@
    <div class="seg wrap seg-stats" id="sseg"><button data-t="desc" class="on" onclick="setS('desc')">Mô tả cơ bản</button><button data-t="spa" onclick="setS('spa')">Không gian</button><button data-t="tim" onclick="setS('tim')">Thời gian</button><button data-t="cor" onclick="setS('cor')">Tương quan</button><button data-t="cls" onclick="setS('cls')">Theo lớp phủ</button></div>
    <div class="msg tx-status" id="smsg3"></div><div id="sdesc" class="tx-lead"></div><div id="sw" class="tx-out"></div></div></section>
 
-  <!-- ===== 3. CHUỖI THỜI GIAN (tối ưu: card có tiêu đề, chữ biểu đồ lớn) ===== -->
+  <!-- ===== 3. CHUỖI THỜI GIAN (Khách và Admin đều xem được) ===== -->
   <section id="v-series" class="view"><div class="pg pg-stats">
    <div class="tx-hero">
     <div class="tx-id">
@@ -208,9 +227,9 @@
      <div class="tx-body"><div class="se-chart"><canvas id="chart"></canvas></div></div></div>
     <div class="tx-block"><h4 class="tx-t" id="seTabT">Bảng số liệu theo mùa khô</h4>
      <div class="tx-body"><div id="stw" class="tw"></div></div></div>
-    <div class="tx-lead">Mùa khô được tổng hợp từ T12 năm trước đến T4 nên giá trị theo mùa chính là giá trị của năm. Đường nét đứt là dự báo cơ sở (tab Công cụ › Kiểm chứng &amp; dự báo).</div></div></div></section>
+    <div class="tx-lead">Mùa khô được tổng hợp từ T12 năm trước đến T4 nên giá trị theo mùa chính là giá trị của năm. Đường nét đứt là dự báo cơ sở (hồi quy tuyến tính trên chuỗi đã quét).</div></div></div></section>
 
-  <!-- ===== 4. TỰ ĐỘNG HÓA (bản tối ưu: banner trạng thái + các thẻ chức năng) ===== -->
+  <!-- ===== 4. TỰ ĐỘNG HÓA (chỉ Admin) ===== -->
   <section id="v-auto" class="view"><div class="pg pg-stats">
    <div class="tx-hero">
     <div class="tx-id">
@@ -297,7 +316,7 @@
    <div class="tx-lead">Thông số hiện tại là ghép ảnh vài tuần gần nhất (mây scene &lt; 60%, pixel mây vẫn bị che bằng QA). TVDI ngoài mùa khô chỉ mang tính tham khảo. Số liệu năm (mùa khô T12–T4) chỉ đổi khi có ảnh mới trong khoảng đó. Phân tích đầy đủ 10 tình huống ở Công cụ › Phân tích &amp; đánh giá.</div>
   </div></div></section>
 
-  <!-- ===== 5. CÔNG CỤ (biểu đồ so sánh, kiểm chứng & dự báo, dữ liệu & xuất file, lịch sử & ảnh, phân tích) ===== -->
+  <!-- ===== 5. CÔNG CỤ (chỉ Admin) ===== -->
   <section id="v-tools" class="view">
    <div class="to-hero">
     <h2>Công cụ phân tích</h2>
@@ -315,9 +334,7 @@
   <div class="msg" id="cmsg2"></div><div class="msg msg-desc" id="cdesc"></div><div id="cw"></div>
   <div class="msg msg-muted">Biểu đồ đường và biểu đồ kết hợp theo thời gian nằm ở mục 3. Bản đồ nhiệt (heat map) là bản đồ ở mục 1 và bảng nhiệt ở mục 2.2.</div></div></div>
 
-  <!-- [SỬA LỖI 2] Pane kiểm chứng: có đủ các id mà series.js (valid / validSeries / vCanvases) cần:
-       #vy (chọn năm), #vbtn (đối chiếu theo pixel), #vbtn2 (đối chiếu chuỗi năm),
-       #vmsg (thông báo), #vtab (bảng kết quả), #vsc (vùng biểu đồ), #ftab (bảng dự báo). -->
+  <!-- Pane kiểm chứng: đủ các id mà series.js (valid / validSeries / vCanvases) cần -->
   <div class="tool-pane" id="tp-valid"><div class="doc">
   <h2>Đối chiếu với dữ liệu độc lập trên GEE</h2>
   <div class="row row-chart">
@@ -367,19 +384,20 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<!-- thứ tự nạp quan trọng: core đầu tiên, main cuối cùng; map3d.js sau map.js -->
+<!-- thứ tự nạp quan trọng: core đầu tiên, auth ngay sau core, main cuối cùng; map3d.js sau map.js -->
 <script src="/static/js/core.js?v=2"></script>
-<script src="/static/js/nav.js?v=3"></script>
+<script src="/static/js/auth.js?v=1"></script>
+<script src="/static/js/nav.js?v=4"></script>
 <script src="/static/js/map.js?v=5"></script>
 <script src="/static/js/map3d.js?v=2"></script>
 <script src="/static/js/tables.js?v=3"></script>
-<script src="/static/js/scan.js?v=1"></script>
-<script src="/static/js/series.js?v=2"></script>
+<script src="/static/js/scan.js?v=2"></script>
+<script src="/static/js/series.js?v=3"></script>
 <script src="/static/js/analysis.js?v=2"></script>
 <script src="/static/js/stats.js?v=2"></script>
 <script src="/static/js/charts.js?v=2"></script>
 <script src="/static/js/export.js?v=1"></script>
 <script src="/static/js/history.js?v=2"></script>
-<script src="/static/js/auto.js?v=2"></script>
+<script src="/static/js/auto.js?v=3"></script>
 <script src="/static/js/main.js?v=7"></script>
 </body></html>

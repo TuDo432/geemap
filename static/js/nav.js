@@ -2,7 +2,9 @@
 let toolTab='charts';
 function enter(){$('cover').style.display='none';$('app').style.display='flex';go('map');}
 function leave(){$('app').style.display='none';$('cover').style.display='flex';}
-function go(v){clearInterval(auTimer);
+function go(v){
+ if(!isAdmin()&&['stats','auto','tools'].includes(v))v='map';   // Khách chỉ vào Bản đồ + Chuỗi thời gian
+ clearInterval(auTimer);
  document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));
  document.querySelectorAll('header [data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
  if(v==='map'){initMap();map.invalidateSize();setTimeout(()=>map&&map.invalidateSize(),100);}

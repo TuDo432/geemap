@@ -1,0 +1,56 @@
+/* ===== ĐĂNG NHẬP & PHÂN QUYỀN ===== */
+
+/* ẩn mọi thành phần chỉ dành cho Admin (mặc định ẩn, tránh nháy trước khi biết quyền) */
+body:not(.is-admin) .admin-only { display: none !important; }
+
+#loginModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(4, 20, 41, .55);
+  backdrop-filter: blur(3px);
+}
+#loginModal.on { display: flex; }
+
+.lg-card {
+  width: min(420px, 100%);
+  background: #fff;
+  color: #1d2733;
+  border-radius: 18px;
+  padding: 26px 26px 22px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .4);
+  text-align: left;
+}
+.lg-card h3 { margin: 0 0 4px; font-size: 21px; color: var(--navy); }
+.lg-card .lg-sub { font-size: 14px; color: #57687a; margin-bottom: 8px; }
+.lg-card label { font-size: 14.5px; font-weight: 600; color: #33475c; margin-top: 12px; }
+.lg-card input {
+  width: 100%;
+  font-size: 15.5px;
+  padding: 10px 12px;
+  margin-top: 5px;
+  border: 1.5px solid #c2cfdd;
+  border-radius: 9px;
+}
+.lg-card button {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px;
+  font-size: 15.5px;
+  font-weight: 700;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.lg-card .lg-go { background: var(--blue); color: #fff; }
+.lg-card .lg-go:disabled { background: #9bb8e8; cursor: wait; }
+.lg-card .lg-guest { background: #eef3f9; color: var(--navy); border: 1.5px solid #c2cfdd; }
+.lg-card .lg-or { text-align: center; font-size: 13px; color: #8a97a5; margin-top: 12px; }
+.lg-card .lg-note { font-size: 13px; color: #57687a; line-height: 1.5; margin-top: 10px; }
+.lg-card .msg { font-size: 14px; min-height: 1em; }
+
+.role-badge { margin-left: auto; }

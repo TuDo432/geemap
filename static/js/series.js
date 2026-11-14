@@ -7,7 +7,7 @@ const SE_T={year:['Biểu đồ theo mùa khô (nhiều năm)','Bảng số li�
 
 async function loadAll(){try{yearRows=await (await fetch('/api/timeseries')).json();monthRows=await (await fetch('/api/monthly')).json();}catch(e){}
  if(tab==='year')render();drawSeries();valid();
- if(toolTab==='ana')drawAna();}
+ if(toolTab==='ana'&&isAdmin())drawAna();}
 
 function setMode(m){mode=m;for(const [id,k] of [['mY','year'],['mM','month'],['mC','combo']])$(id).classList.toggle('on',m===k);drawSeries();}
 
@@ -36,7 +36,7 @@ function drawSeries(){
  sortKey=null;$('stw').innerHTML=tbl(isY?YC:MC,R);}
 
 
-/* ===== ĐỐI CHIẾU VỚI DỮ LIỆU ĐỘC LẬP TRÊN GEE (MODIS, ERA5-Land, CHIRPS) =====
+/* ===== ĐỐI CHIẾU VỚI DỮ LIỆU ĐỘC LẬP TRÊN GEE (MODIS, ERA5-Land, CHIRPS) — chỉ Admin =====
    Backend: /api/validate (theo pixel/ô lưới, một năm) và /api/validate/city (trung bình toàn thành phố, từng năm). */
 let vCh=[];
 const vf=(v,d=3)=>v==null||Number.isNaN(v)?'–':Number(v).toFixed(d);
@@ -52,8 +52,9 @@ function vRemark(c,m){
  return `r ${m.r<0?'âm':'dương'}: ${same?'cùng chiều':'NGƯỢC chiều'} kỳ vọng vật lý (TVDI cao ↔ đất khô/ít mưa); ${sig?'có':'không'} ý nghĩa thống kê (khoảng tin cậy 95% ${sig?'không chứa':'chứa'} 0)`;
 }
 
-/* run=false: chỉ vẽ phần ước lượng + gợi ý (gọi tự động khi mở tab); run=true: chạy đối chiếu thật */
+/* run=false: chỉ vẽ phần ước lượng + gợi ý (gọi tự động khi mở tab); run=true: chạy đối chiếu thật (Admin) */
 async function valid(run){
+ if(run&&needAdmin())return;
  drawForecast();
  const w=$('vtab'),m=$('vmsg'),b=$('vbtn');
  if(!w||!m||!b)return;
@@ -84,6 +85,7 @@ async function valid(run){
 /* đối chiếu chuỗi năm: trung bình toàn thành phố của web vs MODIS trên cùng tập pixel hợp lệ (chỉ LST, NDVI;
    TVDI không đưa vào vì mỗi năm có biên khô/ướt riêng nên không cùng thang giữa các năm) */
 async function validSeries(){
+ if(needAdmin())return;
  const m=$('vmsg'),b=$('vbtn2'),ys=yearRows.length?yearRows.map(r=>r.Nam):Array.from({length:Y-2015},(_,i)=>2016+i),R=[];
  b.disabled=true;m.className='msg';
  try{
