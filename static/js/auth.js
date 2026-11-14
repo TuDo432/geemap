@@ -31,9 +31,26 @@ function applyRole(){
 function openLogin(){
  if(isAdmin()){enter();return;}                       // đã có phiên Admin -> vào thẳng
  $('lgMsg').textContent='';$('lgPass').value='';
- $('loginModal').classList.add('on');$('lgUser').focus();
+ togglePwd(false);                                     // luôn bắt đầu ở chế độ ẩn mật khẩu
+ $('loginModal').classList.add('on');
+ document.documentElement.classList.add('lg-open');    // khoá cuộn nền khi modal mở
+ $('lgUser').focus();
 }
-function closeLogin(){$('loginModal').classList.remove('on');}
+function closeLogin(){
+ $('loginModal').classList.remove('on');
+ document.documentElement.classList.remove('lg-open');
+}
+
+/* Hiện / ẩn mật khẩu. Gọi togglePwd() từ nút con mắt, hoặc togglePwd(false) để trả về chế độ ẩn. */
+function togglePwd(force){
+ const p=$('lgPass'),eye=$('lgEye');if(!p||!eye)return;
+ const show=(force===undefined||force===null)?p.type==='password':!!force;
+ p.type=show?'text':'password';
+ eye.classList.toggle('show',show);
+ eye.setAttribute('aria-pressed',show?'true':'false');
+ eye.setAttribute('aria-label',show?'Ẩn mật khẩu':'Hiện mật khẩu');
+}
+
 async function doLogin(ev){
  if(ev)ev.preventDefault();
  const u=$('lgUser').value.trim(),p=$('lgPass').value,m=$('lgMsg');
@@ -53,5 +70,15 @@ async function roleAction(){
  if(isAdmin()){try{await fetch('/api/auth/logout',{method:'POST'});}catch(e){}await refreshAuth();leave();}
  else{leave();openLogin();}
 }
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLogin();});
+/* Tab/Shift+Tab quẩn trong modal; Esc đóng */
+document.addEventListener('keydown',e=>{
+ const md=$('loginModal');if(!md||!md.classList.contains('on'))return;
+ if(e.key==='Escape'){closeLogin();return;}
+ if(e.key!=='Tab')return;
+ const f=[...md.querySelectorAll('button,input,[href],select,textarea')].filter(el=>!el.disabled&&el.offsetParent!==null);
+ if(!f.length)return;
+ const first=f[0],last=f[f.length-1];
+ if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+ else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+});
 window.addEventListener('load',refreshAuth);
